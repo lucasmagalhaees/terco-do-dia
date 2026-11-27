@@ -1,0 +1,13 @@
+{
+  "name": "terco-do-dia",
+  "private": true,
+  "scripts": {
+    "test:unit": "node --test --test-force-exit tests/unit/app.test.js",
+    "test:e2e": "playwright test",
+    "test": "npm run test:unit && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "jsdom": "25.0.1"
+  }
+}
