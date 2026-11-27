@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Terço do Dia</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16110d">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -164,7 +168,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false };
 
 function load(){
   try{
@@ -173,13 +177,14 @@ function load(){
     var o = JSON.parse(raw);
     if(o.lang) S.lang = o.lang;
     if(o.speed) S.speed = o.speed;
+    if(o.notif) S.notif = o.notif;
     if(o.day === todayKey && o.started && SETS[o.set]){
       S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
     }
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 function build(setKey){
@@ -246,6 +251,10 @@ function home(){
     '<ol class="list" style="margin-top:0">'+list+'</ol>'+
     '<p class="eyebrow label">Mistérios de</p><div class="chips">'+chips+'</div>'+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
+    '<p class="eyebrow label">Lembrete das 20:10</p>'+
+    '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
+    '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
+    '<p class="note" style="margin-top:10px">O calendário avisa todo dia, mesmo com o app fechado. O aviso do app só toca com ele aberto.</p>'+
     '</div>'+
     '<div class="stack">'+cont+'</div>';
 }
@@ -433,6 +442,8 @@ app.addEventListener('click', function(e){
   else if(a==='resume'){ STEPS=build(S.set); S.view='pray'; render(); }
   else if(a==='next') next();
   else if(a==='back') back();
+  else if(a==='ics') downloadIcs();
+  else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
   else if(a==='speed'){ S.speed=(S.speed==='bs'?'normal':'bs'); save(); render(); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
@@ -444,6 +455,53 @@ document.addEventListener('keydown', function(e){
   if(e.key==='ArrowRight'||e.key===' '){ if(document.activeElement && document.activeElement.tagName==='BUTTON' && e.key===' ') return; e.preventDefault(); next(); }
   else if(e.key==='ArrowLeft'){ back(); }
 });
+
+/* ---------- Lembrete das 20:10 ---------- */
+var REM_TITLE='Boa noite, noia', REM_BODY='Hora do terço';
+function pad2(n){ return String(n).padStart(2,'0'); }
+function icsText(){
+  var d=new Date(), ymd=d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate());
+  var stamp=d.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  var msg='Boa noite\\, noia! Hora do terço';
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//terco-do-dia//PT','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    'UID:terco-diario@terco-do-dia','DTSTAMP:'+stamp,'DTSTART:'+ymd+'T201000','DTEND:'+ymd+'T203000','RRULE:FREQ=DAILY',
+    'SUMMARY:'+msg,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+msg,'TRIGGER:PT0S','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
+function downloadIcs(){
+  try{
+    var url=URL.createObjectURL(new Blob([icsText()],{type:'text/calendar;charset=utf-8'}));
+    var a=document.createElement('a'); a.href=url; a.download='terco-20h10.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },4000);
+  }catch(e){}
+}
+function notifLabel(){
+  if(!('Notification' in window)) return 'Aviso indisponível neste navegador';
+  if(Notification.permission==='denied') return 'Avisos bloqueados no navegador';
+  return (S.notif&&Notification.permission==='granted') ? 'Aviso com o app aberto: ligado' : 'Ativar aviso com o app aberto';
+}
+function fire(test){
+  var opts={body:test?'Aviso ligado. Toca todo dia às 20:10.':REM_BODY, tag:'terco', icon:'icon-192.png'};
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistration){
+      navigator.serviceWorker.getRegistration().then(function(r){
+        if(r) r.showNotification(REM_TITLE,opts); else new Notification(REM_TITLE,opts);
+      }).catch(function(){});
+    } else new Notification(REM_TITLE,opts);
+  }catch(e){}
+}
+function toggleNotif(){
+  if(!('Notification' in window)||Notification.permission==='denied') return;
+  if(S.notif){ S.notif=false; save(); render(); return; }
+  Notification.requestPermission().then(function(r){ S.notif=(r==='granted'); save(); if(S.notif) fire(true); render(); });
+}
+var lastFired='';
+setInterval(function(){
+  if(!S.notif||!('Notification' in window)||Notification.permission!=='granted') return;
+  var n=new Date(), k=n.getFullYear()+'-'+n.getMonth()+'-'+n.getDate();
+  if(n.getHours()===20&&n.getMinutes()===10&&lastFired!==k){ lastFired=k; fire(false); }
+},15000);
+try{ if('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
 
 load();
 STEPS=build(S.set);
