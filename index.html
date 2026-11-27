@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Terço do Dia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: uma tela só, coluna única; topo com progresso, centro com a oração, base com o botão grande. */
+:root{
+  --bg:#f2ead9; --card:#faf4e6; --ink:#2b2117; --muted:#74685a; --line:#d8cbb0;
+  --accent:#8c2a3a; --on-accent:#ffffff;
+  --display:"Cinzel","Trajan Pro",Georgia,serif;
+  --body:"EB Garamond",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16110d; --card:#211a13; --ink:#ece1cc; --muted:#a39580; --line:#3b3023; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16110d; --card:#211a13; --ink:#ece1cc; --muted:#a39580; --line:#3b3023; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:20px;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+#app{height:100%;display:flex;flex-direction:column;max-width:640px;margin:0 auto;
+  padding:max(env(safe-area-inset-top),14px) max(env(safe-area-inset-right),18px) max(env(safe-area-inset-bottom),14px) max(env(safe-area-inset-left),18px)}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:8px 0 18px}
+.eyebrow{font-family:var(--display);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0}
+h1,h2{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:.02em}
+h1{font-size:clamp(1.9rem,8vw,2.6rem);line-height:1.12}
+h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
+.rule{height:3px;width:56px;background:var(--accent);border-radius:2px;margin:14px 0 18px}
+
+/* segmented control */
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.seg button{flex:1;border:0;background:none;padding:11px 8px;font-size:.95rem;min-height:44px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+/* home */
+.list{list-style:none;margin:0 0 18px;padding:0;counter-reset:m}
+.list li{counter-increment:m;display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
+.list li::before{content:counter(m,upper-roman);font-family:var(--display);font-size:.85rem;color:var(--accent);min-width:2.2em}
+.list .la{display:block;font-style:italic;color:var(--muted);font-size:.9em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.9rem;min-height:40px}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip small{color:var(--muted)}
+.label{margin:18px 0 8px}
+
+/* buttons */
+.btn{width:100%;min-height:58px;border-radius:14px;border:0;background:var(--accent);color:var(--on-accent);
+  font-family:var(--display);font-size:1rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line);min-height:50px;font-size:.85rem}
+.row{display:flex;gap:10px}
+.row .btn.ghost{width:auto;padding:0 18px;flex:0 0 auto}
+.row .btn:not(.ghost){flex:1}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+/* prayer view */
+.top{display:flex;align-items:center;gap:12px;padding-bottom:10px}
+.top .exit{border:1px solid var(--line);background:var(--card);border-radius:10px;min-width:44px;min-height:44px;font-size:1.1rem}
+.prog{flex:1;display:flex;gap:6px}
+.prog i{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
+.prog i.done{background:var(--accent)}
+.prog i.cur::after{content:"";position:absolute;inset:0;background:var(--accent);width:var(--p,0%)}
+.where{display:flex;justify-content:space-between;gap:10px;margin:2px 0 4px}
+.myst{margin:6px 0 14px}
+.myst .la{display:block;font-style:italic;font-weight:400;font-family:var(--body);font-size:.95rem;letter-spacing:0;color:var(--muted);margin-top:4px}
+.prayer{margin:0 0 .9em;font-size:clamp(1.22rem,4.8vw,1.42rem);line-height:1.55;max-width:34rem}
+.prayer.pt2{font-size:1.05rem;color:var(--muted);font-style:italic;margin-top:-.2em}
+.note{color:var(--muted);font-style:italic;margin:0 0 .8em}
+.beads{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;padding:6px 0 14px}
+.beads b{width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);background:transparent;transition:background .18s}
+.beads b.on{background:var(--accent)}
+.count{font-family:var(--display);text-align:center;color:var(--muted);letter-spacing:.12em;font-size:.8rem;margin-bottom:6px}
+.done-screen{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.amen{font-family:var(--display);font-size:clamp(3rem,16vw,4.6rem);color:var(--accent);margin:0;line-height:1}
+/* terço virtual */
+.ros{display:block;flex:0 0 auto;width:100%;height:128px;padding:0;margin:0 0 8px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden;transition:height .35s ease}
+.ros.big{height:min(46vh,360px)}
+.ros svg{display:block;width:100%;height:100%}
+.ros:not(.big) svg{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.ros .string{fill:none;stroke:var(--line);stroke-width:1.4}
+.ros .bd{fill:var(--card);stroke:var(--muted);stroke-width:1.2;transform-box:fill-box;transform-origin:center;transition:fill .35s,stroke .35s,transform .35s cubic-bezier(.3,1.6,.5,1)}
+.ros .done .bd{fill:var(--accent);stroke:var(--accent)}
+.ros .cur .bd{fill:var(--accent);stroke:var(--ink);stroke-width:1.6;transform:scale(1.3)}
+.ros .ring{fill:none;stroke:var(--accent);stroke-width:1.4;opacity:0;transform-box:fill-box;transform-origin:center}
+.ros .cur .ring{animation:pulse var(--pulse,1.9s) ease-out infinite}
+.where{align-items:center}
+.ctl{display:flex;gap:6px}
+.mini{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:.8rem;min-height:36px;white-space:nowrap}
+.mini[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+@keyframes pulse{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+@media (prefers-reduced-motion: reduce){ .beads b,.ros,.ros .bd{transition:none} .ros .cur .ring{animation:none;opacity:.8} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ---------- Conteúdo ---------- */
+var PRAYERS = {
+  sinal:{ name:{pt:'Sinal da Cruz',la:'Signum Crucis'},
+    pt:'Em nome do Pai, e do Filho, e do Espírito Santo. Amém.',
+    la:'In nómine Patris, et Fílii, et Spíritus Sancti. Amen.' },
+  credo:{ name:{pt:'Creio em Deus Pai',la:'Credo'},
+    pt:'Creio em Deus Pai todo-poderoso, criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor, que foi concebido pelo poder do Espírito Santo, nasceu da Virgem Maria, padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus, está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo, na santa Igreja Católica, na comunhão dos santos, na remissão dos pecados, na ressurreição da carne, na vida eterna. Amém.',
+    la:'Credo in Deum Patrem omnipoténtem, Creatórem cæli et terræ. Et in Iesum Christum, Fílium eius unicum, Dóminum nostrum, qui conceptus est de Spíritu Sancto, natus ex María Vírgine, passus sub Póntio Piláto, crucifíxus, mórtuus, et sepúltus, descéndit ad ínferos; tértia die resurréxit a mórtuis; ascéndit ad cælos, sedet ad déxteram Dei Patris omnipoténtis; inde ventúrus est iudicáre vivos et mórtuos. Credo in Spíritum Sanctum, sanctam Ecclésiam cathólicam, sanctórum communiónem, remissiónem peccatórum, carnis resurrectiónem, vitam ætérnam. Amen.' },
+  pai:{ name:{pt:'Pai Nosso',la:'Pater Noster'},
+    pt:'Pai nosso, que estais nos céus, santificado seja o vosso nome; venha a nós o vosso reino; seja feita a vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje; perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido; e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.',
+    la:'Pater noster, qui es in cælis, sanctificétur nomen tuum; advéniat regnum tuum; fiat volúntas tua, sicut in cælo et in terra. Panem nostrum cotidiánum da nobis hódie; et dimítte nobis débita nostra, sicut et nos dimíttimus debitóribus nostris; et ne nos indúcas in tentatiónem; sed líbera nos a malo. Amen.' },
+  ave:{ name:{pt:'Ave Maria',la:'Ave Maria'},
+    pt:'Ave Maria, cheia de graça, o Senhor é convosco; bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora de nossa morte. Amém.',
+    la:'Ave María, grátia plena, Dóminus tecum; benedícta tu in muliéribus, et benedíctus fructus ventris tui, Iesus. Sancta María, Mater Dei, ora pro nobis peccatóribus, nunc et in hora mortis nostræ. Amen.' },
+  gloria:{ name:{pt:'Glória',la:'Glória Patri'},
+    pt:'Glória ao Pai, e ao Filho, e ao Espírito Santo. Como era no princípio, agora e sempre. Amém.',
+    la:'Glória Patri, et Fílio, et Spirítui Sancto. Sicut erat in princípio, et nunc, et semper, et in sǽcula sæculórum. Amen.' },
+  fatima:{ name:{pt:'Ó meu Jesus',la:'O mi Iesu'},
+    pt:'Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o céu e socorrei principalmente as que mais precisarem.',
+    la:'O mi Iesu, dimítte nobis débita nostra, salva nos ab igne inférni, perdúc in cælum omnes ánimas, præsértim eas, quæ misericórdiæ tuæ máxime indigent.' },
+  salve:{ name:{pt:'Salve Rainha',la:'Salve Regína'},
+    pt:'Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva; a vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei; e depois deste desterro mostrai-nos Jesus, bendito fruto do vosso ventre, ó clemente, ó piedosa, ó doce sempre Virgem Maria. Rogai por nós, Santa Mãe de Deus, para que sejamos dignos das promessas de Cristo. Amém.',
+    la:'Salve, Regína, Mater misericórdiæ, vita, dulcédo, et spes nostra, salve. Ad te clamámus, éxsules fílii Hevæ. Ad te suspirámus, geméntes et flentes in hac lacrimárum valle. Eia ergo, Advocáta nostra, illos tuos misericórdes óculos ad nos convérte. Et Iesum, benedíctum fructum ventris tui, nobis post hoc exsílium osténde. O clemens, O pia, O dulcis Virgo María. Ora pro nobis, sancta Dei Génetrix. Ut digni efficiámur promissiónibus Christi. Amen.' }
+};
+
+var SETS = {
+  gozosos:{ short:'Gozosos', name:{pt:'Mistérios Gozosos',la:'Mystéria Gaudii'}, days:'segunda e sábado', acc:'#d3a437', on:'#2b2117', items:[
+    {pt:'A Anunciação do Anjo a Maria',la:'Annuntiátio Angeli ad Maríam'},
+    {pt:'A Visitação de Maria a Isabel',la:'Visitátio Maríæ ad Elísabeth'},
+    {pt:'O Nascimento de Jesus em Belém',la:'Nativitas Dómini in Béthlehem'},
+    {pt:'A Apresentação de Jesus no Templo',la:'Præsentátio Iesu in Templo'},
+    {pt:'O Encontro do Menino Jesus no Templo',la:'Invéntio Púeri Iesu in Templo'}]},
+  luminosos:{ short:'Luminosos', name:{pt:'Mistérios Luminosos',la:'Mystéria Lucis'}, days:'quinta-feira', acc:'#3f73b0', on:'#ffffff', items:[
+    {pt:'O Batismo de Jesus no Jordão',la:'Baptísmus Iesu in Iordáne'},
+    {pt:'As Bodas de Caná',la:'Núptiæ in Cana'},
+    {pt:'O Anúncio do Reino de Deus',la:'Annuntiátio Regni Dei'},
+    {pt:'A Transfiguração de Jesus',la:'Transfiguratio Dómini'},
+    {pt:'A Instituição da Eucaristia',la:'Institútio Eucharístiæ'}]},
+  dolorosos:{ short:'Dolorosos', name:{pt:'Mistérios Dolorosos',la:'Mystéria Dolóris'}, days:'terça e sexta-feira', acc:'#8c2a3a', on:'#ffffff', items:[
+    {pt:'A Agonia de Jesus no Horto',la:'Agonía Iesu in Horto'},
+    {pt:'A Flagelação de Jesus',la:'Flagellátio Dómini'},
+    {pt:'A Coroação de Espinhos',la:'Coronátio Spinis'},
+    {pt:'Jesus carrega a Cruz',la:'Baiulátio Crucis'},
+    {pt:'A Crucificação e Morte de Jesus',la:'Crucifíxio et Mors Dómini'}]},
+  gloriosos:{ short:'Gloriosos', name:{pt:'Mistérios Gloriosos',la:'Mystéria Glóriæ'}, days:'quarta-feira e domingo', acc:'#c7b06a', on:'#2b2117', items:[
+    {pt:'A Ressurreição de Jesus',la:'Resurréctio Dómini'},
+    {pt:'A Ascensão de Jesus ao Céu',la:'Ascénsio Dómini'},
+    {pt:'A Vinda do Espírito Santo',la:'Descénsus Spíritus Sancti'},
+    {pt:'A Assunção de Maria',la:'Assúmptio Maríæ'},
+    {pt:'A Coroação de Maria',la:'Coronátio Maríæ'}]}
+};
+var BY_DAY = ['gloriosos','gozosos','dolorosos','gloriosos','luminosos','dolorosos','gozosos'];
+var ORD = {pt:['1º','2º','3º','4º','5º'], la:['I','II','III','IV','V']};
+
+/* ---------- Estado ---------- */
+var KEY = 'terco-do-dia-v1';
+var now = new Date();
+var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+var todaySet = BY_DAY[now.getDay()];
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false };
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(!raw) return;
+    var o = JSON.parse(raw);
+    if(o.lang) S.lang = o.lang;
+    if(o.speed) S.speed = o.speed;
+    if(o.day === todayKey && o.started && SETS[o.set]){
+      S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
+    }
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+}
+
+function build(setKey){
+  var st=[], items=SETS[setKey].items;
+  st.push({k:'sinal',phase:'Início'});
+  st.push({k:'credo',phase:'Início'});
+  st.push({k:'pai',phase:'Início'});
+  st.push({k:'ave',count:3,phase:'Início',note:{pt:'Três Ave-Marias: pela fé, pela esperança e pela caridade.',la:'Tres Ave Maria: pro fide, spe et caritate.'}});
+  st.push({k:'gloria',phase:'Início'});
+  items.forEach(function(m,d){
+    st.push({k:'pai',dec:d,myst:m,announce:true});
+    st.push({k:'ave',count:10,dec:d,myst:m});
+    st.push({k:'gloria',dec:d,myst:m});
+    st.push({k:'fatima',dec:d,myst:m});
+  });
+  st.push({k:'salve',phase:'Final'});
+  st.push({k:'sinal',phase:'Final',end:true});
+  return st;
+}
+var STEPS = build(S.set);
+
+/* ---------- Render ---------- */
+var app = document.getElementById('app');
+
+function pair(obj, cls){
+  if(S.lang==='pt') return '<p class="prayer '+(cls||'')+'">'+obj.pt+'</p>';
+  if(S.lang==='la') return '<p class="prayer '+(cls||'')+'">'+obj.la+'</p>';
+  return '<p class="prayer">'+obj.la+'</p><p class="prayer pt2">'+obj.pt+'</p>';
+}
+function nm(obj){
+  if(S.lang==='pt') return obj.pt;
+  if(S.lang==='la') return obj.la;
+  return obj.la+'<span class="la">'+obj.pt+'</span>';
+}
+function langSeg(){
+  var o=[['pt','Português'],['la','Latim'],['both','Os dois']];
+  return '<div class="seg" role="group" aria-label="Idioma">'+o.map(function(x){
+    return '<button data-lang="'+x[0]+'" aria-pressed="'+(S.lang===x[0])+'">'+x[1]+'</button>';
+  }).join('')+'</div>';
+}
+function applyAccent(){
+  var s=SETS[S.set], r=document.documentElement.style;
+  r.setProperty('--accent', s.acc); r.setProperty('--on-accent', s.on);
+}
+
+function home(){
+  var s=SETS[S.set];
+  var date = now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  var chips = Object.keys(SETS).map(function(k){
+    return '<button class="chip" data-set="'+k+'" aria-pressed="'+(S.set===k)+'">'+SETS[k].short+(k===todaySet?' <small>· hoje</small>':'')+'</button>';
+  }).join('');
+  var list = s.items.map(function(m){ return '<li><span>'+nm(m)+'</span></li>'; }).join('');
+  var cont = '';
+  if(S.started){
+    cont = '<button class="btn" data-act="resume">Continuar</button><button class="btn ghost" data-act="restart">Recomeçar</button>';
+  } else {
+    cont = '<button class="btn" data-act="start">Começar o terço</button>';
+  }
+  app.innerHTML =
+    '<div class="scroll">'+
+    '<p class="eyebrow">'+date+'</p>'+
+    '<h1 style="margin-top:8px">'+nm(s.name)+'</h1>'+
+    '<div class="rule"></div>'+
+    '<ol class="list" style="margin-top:0">'+list+'</ol>'+
+    '<p class="eyebrow label">Mistérios de</p><div class="chips">'+chips+'</div>'+
+    '<p class="eyebrow label">Idioma</p>'+langSeg()+
+    '</div>'+
+    '<div class="stack">'+cont+'</div>';
+}
+
+function pray(){
+  var st=STEPS[S.i], p=PRAYERS[st.k];
+  var decDone = typeof st.dec==='number' ? st.dec : (S.i<5?-1:5);
+  var seg='';
+  for(var d=0; d<5; d++){
+    var cls = d<decDone ? 'done' : '';
+    var style='';
+    if(d===decDone){
+      var inStep = {pai:0,ave:1,gloria:2,fatima:3}[st.k];
+      var frac = (inStep + (st.k==='ave'?S.c/st.count:0))/4;
+      cls='cur'; style=' style="--p:'+Math.round(frac*100)+'%"';
+    }
+    if(decDone===5) cls='done';
+    seg+='<i class="'+cls+'"'+style+'></i>';
+  }
+  var where;
+  if(typeof st.dec==='number'){
+    where = (S.lang==='la'?'Mystérium '+ORD.la[st.dec]:ORD.pt[st.dec]+' mistério');
+  } else { where = st.phase==='Final' ? (S.lang==='la'?'Finis':'Final') : (S.lang==='la'?'Initium':'Início'); }
+
+  var head='';
+  if(typeof st.dec==='number'){
+    head = '<h2 class="myst">'+nm(st.myst)+'</h2>';
+  }
+  var title = '<p class="eyebrow" style="margin-bottom:8px">'+(S.lang==='pt'?p.name.pt:(S.lang==='la'?p.name.la:p.name.la+' · '+p.name.pt))+'</p>';
+  var note = st.note ? '<p class="note">'+(S.lang==='la'?st.note.la:(S.lang==='both'?st.note.pt:st.note.pt))+'</p>' : '';
+  var count='', btn;
+  if(st.count){
+    count='<div class="count">'+S.c+' / '+st.count+'</div>';
+    btn = 'Ave Maria rezada';
+  } else {
+    btn = (S.i===STEPS.length-1) ? 'Amém' : 'Próxima oração';
+  }
+  var nextLabel = st.announce ? 'Pai Nosso rezado' : btn;
+
+  app.innerHTML =
+    '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div></div>'+
+    '<div id="rosHolder"></div>'+
+    '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
+      '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
+      '<button class="mini" data-act="speed" aria-label="Velocidade: '+(S.speed==='bs'?'BS':'normal')+'. Toque para trocar.">'+(S.speed==='bs'?'BS ⚡':'Normal')+'</button>'+
+    '</div></div>'+
+    '<div class="scroll">'+
+      head+title+note+pair(p)+
+    '</div>'+
+    count+
+    '<div class="row"><button class="btn ghost" data-act="back" aria-label="Voltar">←</button><button class="btn" data-act="next">'+nextLabel+'</button></div>';
+  var sc=app.querySelector('.scroll'); if(sc) sc.scrollTop=0;
+  mountRosary();
+}
+
+/* ---------- Terço virtual ---------- */
+var RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+var ROS=null, ROSVG=null, BEADS={}, CAM=null, CAMUNTIL=0, CAMRAF=0, OVERVIEW=false, CURID='cross';
+var CX=150, CY=120, CR=105;
+function svgEl(n,a,p){ var e=document.createElementNS('http://www.w3.org/2000/svg',n); for(var k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; }
+function slotXY(k){ var t=(90+k*360/56)*Math.PI/180; return [CX+CR*Math.cos(t), CY+CR*Math.sin(t)]; }
+function addBead(id,x,y,r,p){
+  var g=svgEl('g',{},ROSVG);
+  svgEl('circle',{'class':'ring',cx:x,cy:y,r:r+3},g);
+  svgEl('circle',{'class':'bd',cx:x,cy:y,r:r},g);
+  BEADS[id]={g:g,x:x,y:y,p:p};
+}
+function buildRosary(){
+  ROS=document.createElement('button');
+  ROS.className='ros'; ROS.dataset.act='ros';
+  ROS.setAttribute('aria-label','Terço virtual. Toque para ver inteiro ou de perto.');
+  ROSVG=svgEl('svg',{viewBox:'0 0 300 370','aria-hidden':'true'}); ROS.appendChild(ROSVG);
+  svgEl('circle',{'class':'string',cx:CX,cy:CY,r:CR},ROSVG);
+  svgEl('line',{'class':'string',x1:150,y1:225,x2:150,y2:326},ROSVG);
+  var d,j,s,q;
+  for(d=0;d<5;d++){
+    for(j=0;j<10;j++){ s=slotXY(1+d*11+j); addBead('d'+d+'_'+j,s[0],s[1],4.2,7+d*11+j); }
+    q=slotXY(11+d*11); addBead('L'+d,q[0],q[1],6.6,7+d*11+10);
+  }
+  addBead('medal',150,225,6.5,6);
+  addBead('B',150,244,6.6,5);
+  addBead('t0',150,261,4.2,2); addBead('t1',150,275,4.2,3); addBead('t2',150,289,4.2,4);
+  addBead('A1',150,307,6.6,1);
+  var g=svgEl('g',{},ROSVG);
+  svgEl('circle',{'class':'ring',cx:150,cy:342,r:20},g);
+  svgEl('rect',{'class':'bd',x:147,y:324,width:6,height:36,rx:1.5},g);
+  svgEl('rect',{'class':'bd',x:138,y:333,width:24,height:6,rx:1.5},g);
+  BEADS.cross={g:g,x:150,y:342,p:0};
+}
+function curBead(){
+  var st=STEPS[S.i], k=st.k, d=st.dec, has=(typeof d==='number');
+  if(k==='credo'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
+  if(k==='pai'&&!has) return {id:'A1',p:1};
+  if(k==='ave'&&!has) return {id:'t'+S.c,p:2+S.c};
+  if(k==='gloria'&&!has) return {id:'B',p:5};
+  if(k==='pai') return d===0 ? {id:'medal',p:6} : {id:'L'+(d-1),p:7+(d-1)*11+10};
+  if(k==='ave') return {id:'d'+d+'_'+S.c,p:7+d*11+S.c};
+  if(k==='gloria'||k==='fatima') return {id:'L'+d,p:7+d*11+10};
+  if(k==='salve') return {id:'medal',p:62};
+  return {id:'cross',p:63};
+}
+function updateRosary(){
+  var c=curBead(); CURID=c.id;
+  ROS.style.setProperty('--pulse', S.speed==='bs'?'.9s':'1.9s');
+  for(var id in BEADS){ var b=BEADS[id]; b.g.setAttribute('class', id===c.id?'cur':(b.p<c.p?'done':'')); }
+  wake();
+}
+function camTarget(){
+  var r=ROS.getBoundingClientRect(), asp=(r.width&&r.height)?r.width/r.height:2.6, b=BEADS[CURID], W, H;
+  if(OVERVIEW){ H=384; W=H*asp; return [150-W/2,-10,W,H]; }
+  W=150; H=W/asp; return [b.x-W/2,b.y-H/2,W,H];
+}
+function wake(){ CAMUNTIL=performance.now()+700; if(!CAMRAF) CAMRAF=requestAnimationFrame(camTick); }
+function camTick(){
+  CAMRAF=0; if(!ROS||!ROS.isConnected) return;
+  var t=camTarget(), moving=false, i;
+  if(!CAM||RM) CAM=t.slice();
+  else for(i=0;i<4;i++){ CAM[i]+=(t[i]-CAM[i])*(S.speed==='bs'?0.28:0.14); if(Math.abs(t[i]-CAM[i])>0.05) moving=true; }
+  ROSVG.setAttribute('viewBox',CAM.map(function(v){return v.toFixed(2);}).join(' '));
+  if(moving||performance.now()<CAMUNTIL) CAMRAF=requestAnimationFrame(camTick);
+}
+function mountRosary(){
+  var h=document.getElementById('rosHolder'); if(!h) return;
+  if(!ROS) buildRosary();
+  h.appendChild(ROS); ROS.classList.toggle('big',OVERVIEW);
+  updateRosary();
+}
+window.addEventListener('resize', function(){ if(ROS&&ROS.isConnected) wake(); });
+
+function done(){
+  var s=SETS[S.set];
+  app.innerHTML =
+    '<div class="done-screen"><p class="eyebrow">'+nm(s.name).replace(/<[^>]+>/g,' ')+'</p><p class="amen">Amém.</p>'+
+    '<div class="rule"></div><p class="prayer">Terço concluído. Laudetur Iesus Christus.</p></div>'+
+    '<div class="stack"><button class="btn" data-act="finish">Voltar ao início</button></div>';
+}
+
+var autoTimer=0;
+function delayFor(){
+  var st=STEPS[S.i], p=PRAYERS[st.k], w=(S.lang==='pt'?p.pt:p.la).split(/\s+/).length, bs=S.speed==='bs';
+  return bs ? 700+w*170+(st.announce?1000:0) : 1500+w*360+(st.announce?2500:0);
+}
+function schedule(){
+  clearTimeout(autoTimer);
+  if(S.auto && S.view==='pray') autoTimer=setTimeout(next, delayFor());
+}
+function render(){
+  clearTimeout(autoTimer);
+  applyAccent();
+  if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
+}
+
+/* ---------- Ações ---------- */
+function next(){
+  var st=STEPS[S.i];
+  if(st.count){
+    S.c++;
+    if(S.c>=st.count){ S.c=0; S.i++; }
+  } else {
+    if(S.i>=STEPS.length-1){ S.view='done'; S.started=false; S.i=0; S.c=0; save(); render(); return; }
+    S.i++;
+  }
+  save(); render();
+}
+function back(){
+  var st=STEPS[S.i];
+  if(st.count && S.c>0){ S.c--; }
+  else if(S.i>0){
+    S.i--; var pv=STEPS[S.i];
+    S.c = pv.count ? pv.count-1 : 0;
+  }
+  save(); render();
+}
+function start(){ STEPS=build(S.set); S.i=0; S.c=0; S.started=true; S.view='pray'; save(); render(); }
+
+app.addEventListener('click', function(e){
+  var t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.lang){ S.lang=t.dataset.lang; save(); render(); return; }
+  if(t.dataset.set){
+    if(S.started && t.dataset.set!==S.set){ S.started=false; S.i=0; S.c=0; }
+    S.set=t.dataset.set; STEPS=build(S.set); save(); render(); return;
+  }
+  var a=t.dataset.act;
+  if(a==='start'||a==='restart') start();
+  else if(a==='resume'){ STEPS=build(S.set); S.view='pray'; render(); }
+  else if(a==='next') next();
+  else if(a==='back') back();
+  else if(a==='auto'){ S.auto=!S.auto; render(); }
+  else if(a==='speed'){ S.speed=(S.speed==='bs'?'normal':'bs'); save(); render(); }
+  else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
+  else if(a==='home'){ S.view='home'; render(); }
+  else if(a==='finish'){ S.view='home'; S.set=todaySet; STEPS=build(S.set); render(); }
+});
+document.addEventListener('keydown', function(e){
+  if(S.view!=='pray') return;
+  if(e.key==='ArrowRight'||e.key===' '){ if(document.activeElement && document.activeElement.tagName==='BUTTON' && e.key===' ') return; e.preventDefault(); next(); }
+  else if(e.key==='ArrowLeft'){ back(); }
+});
+
+load();
+STEPS=build(S.set);
+if(S.i>=STEPS.length) S.i=0;
+render();
+</script>
+</body>
+</html>
