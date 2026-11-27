@@ -53,6 +53,9 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .list li{counter-increment:m;display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line)}
 .list li::before{content:counter(m,upper-roman);font-family:var(--display);font-size:.85rem;color:var(--accent);min-width:2.2em}
 .list .la{display:block;font-style:italic;color:var(--muted);font-size:.9em}
+.list li.grp{counter-reset:m;border:0;padding:16px 0 2px}
+.list li.grp::before{content:""}
+.list .gh{font-family:var(--display);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.9rem;min-height:40px}
 .chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
@@ -168,7 +171,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false, voice:'f' };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false, voice:'f', say:false, mode:'terco' };
 
 function load(){
   try{
@@ -179,33 +182,45 @@ function load(){
     if(o.speed) S.speed = o.speed;
     if(o.notif) S.notif = o.notif;
     if(o.voice) S.voice = o.voice;
+    if(o.say) S.say = o.say;
+    if(o.mode) S.mode = o.mode;
     if(o.day === todayKey && o.started && SETS[o.set]){
       S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
     }
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,voice:S.voice,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,voice:S.voice,say:S.say,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
-function build(setKey){
-  var st=[], items=SETS[setKey].items;
+var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
+function setsForRun(){ return S.mode==='rosario' ? ROSARIO : [S.set]; }
+function build(){
+  var sets=setsForRun(), st=[];
   st.push({k:'sinal',phase:'Início'});
   st.push({k:'credo',phase:'Início'});
   st.push({k:'pai',phase:'Início'});
   st.push({k:'ave',count:3,phase:'Início',note:{pt:'Três Ave-Marias: pela fé, pela esperança e pela caridade.',la:'Tres Ave Maria: pro fide, spe et caritate.'}});
   st.push({k:'gloria',phase:'Início'});
-  items.forEach(function(m,d){
-    st.push({k:'pai',dec:d,myst:m,announce:true});
-    st.push({k:'ave',count:10,dec:d,myst:m});
-    st.push({k:'gloria',dec:d,myst:m});
-    st.push({k:'fatima',dec:d,myst:m});
+  sets.forEach(function(sk){
+    SETS[sk].items.forEach(function(m,d){
+      st.push({k:'pai',dec:d,myst:m,setKey:sk,announce:true,firstOfSet:d===0});
+      st.push({k:'ave',count:10,dec:d,myst:m,setKey:sk});
+      st.push({k:'gloria',dec:d,myst:m,setKey:sk});
+      st.push({k:'fatima',dec:d,myst:m,setKey:sk});
+    });
   });
   st.push({k:'salve',phase:'Final'});
   st.push({k:'sinal',phase:'Final',end:true});
   return st;
 }
-var STEPS = build(S.set);
+function currentSetKey(){
+  var st=STEPS&&STEPS[S.i];
+  if(st&&st.setKey) return st.setKey;
+  if(st&&st.phase==='Final') return setsForRun().slice(-1)[0];
+  return setsForRun()[0];
+}
+var STEPS = build();
 
 /* ---------- Render ---------- */
 var app = document.getElementById('app');
@@ -226,31 +241,51 @@ function langSeg(){
     return '<button data-lang="'+x[0]+'" aria-pressed="'+(S.lang===x[0])+'">'+x[1]+'</button>';
   }).join('')+'</div>';
 }
+function modeSeg(){
+  var o=[['terco','Terço do dia'],['rosario','Rosário completo']];
+  return '<div class="seg" role="group" aria-label="Modo">'+o.map(function(x){
+    return '<button data-mode="'+x[0]+'" aria-pressed="'+(S.mode===x[0])+'">'+x[1]+'</button>';
+  }).join('')+'</div>';
+}
 function applyAccent(){
-  var s=SETS[S.set], r=document.documentElement.style;
+  var s=SETS[currentSetKey()], r=document.documentElement.style;
   r.setProperty('--accent', s.acc); r.setProperty('--on-accent', s.on);
 }
 
 function home(){
-  var s=SETS[S.set];
+  var ros=(S.mode==='rosario');
   var date = now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-  var chips = Object.keys(SETS).map(function(k){
-    return '<button class="chip" data-set="'+k+'" aria-pressed="'+(S.set===k)+'">'+SETS[k].short+(k===todaySet?' <small>· hoje</small>':'')+'</button>';
-  }).join('');
-  var list = s.items.map(function(m){ return '<li><span>'+nm(m)+'</span></li>'; }).join('');
+  var title, list, chipsBlock='';
+  if(ros){
+    title = (S.lang==='la'?'Rosárium':'Rosário completo');
+    list = ROSARIO.map(function(sk){
+      var ss=SETS[sk];
+      return '<li class="grp"><span class="gh">'+nm(ss.name)+'</span></li>'+
+        ss.items.map(function(m){ return '<li><span>'+nm(m)+'</span></li>'; }).join('');
+    }).join('');
+  } else {
+    var s=SETS[S.set];
+    title = nm(s.name);
+    list = s.items.map(function(m){ return '<li><span>'+nm(m)+'</span></li>'; }).join('');
+    var chips = Object.keys(SETS).map(function(k){
+      return '<button class="chip" data-set="'+k+'" aria-pressed="'+(S.set===k)+'">'+SETS[k].short+(k===todaySet?' <small>· hoje</small>':'')+'</button>';
+    }).join('');
+    chipsBlock = '<p class="eyebrow label">Mistérios de</p><div class="chips">'+chips+'</div>';
+  }
   var cont = '';
   if(S.started){
-    cont = '<button class="btn" data-act="resume">Continuar</button><button class="btn ghost" data-act="restart">Recomeçar</button>';
+    cont = '<button class="btn" data-act="resume">Continuar</button><button class="btn ghost" data-act="restart">Recomeçar do zero</button>';
   } else {
-    cont = '<button class="btn" data-act="start">Começar o terço</button>';
+    cont = '<button class="btn" data-act="start">'+(ros?'Começar o rosário':'Começar o terço')+'</button>';
   }
   app.innerHTML =
     '<div class="scroll">'+
     '<p class="eyebrow">'+date+'</p>'+
-    '<h1 style="margin-top:8px">'+nm(s.name)+'</h1>'+
+    '<h1 style="margin-top:8px">'+title+'</h1>'+
     '<div class="rule"></div>'+
     '<ol class="list" style="margin-top:0">'+list+'</ol>'+
-    '<p class="eyebrow label">Mistérios de</p><div class="chips">'+chips+'</div>'+
+    '<p class="eyebrow label">Rezar</p>'+modeSeg()+
+    chipsBlock+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
     '<p class="eyebrow label">Lembrete das 20:10</p>'+
@@ -280,6 +315,7 @@ function pray(){
   if(typeof st.dec==='number'){
     where = (S.lang==='la'?'Mystérium '+ORD.la[st.dec]:ORD.pt[st.dec]+' mistério');
   } else { where = st.phase==='Final' ? (S.lang==='la'?'Finis':'Final') : (S.lang==='la'?'Initium':'Início'); }
+  if(S.mode==='rosario' && st.setKey){ where = SETS[st.setKey].short+' · '+where; }
 
   var head='';
   if(typeof st.dec==='number'){
@@ -297,10 +333,10 @@ function pray(){
   var nextLabel = st.announce ? 'Pai Nosso rezado' : btn;
 
   app.innerHTML =
-    '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div></div>'+
+    '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div><button class="exit" data-act="reset" aria-label="Reiniciar do começo">↺</button></div>'+
     '<div id="rosHolder"></div>'+
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
-      (('speechSynthesis' in window)?'<button class="mini" data-act="say">Ouvir</button>':'')+
+      (('speechSynthesis' in window)?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>':'')+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
       '<button class="mini" data-act="speed" aria-label="Velocidade: '+(S.speed==='bs'?'BS':'normal')+'. Toque para trocar.">'+(S.speed==='bs'?'BS ⚡':'Normal')+'</button>'+
     '</div></div>'+
@@ -388,10 +424,11 @@ function mountRosary(){
 window.addEventListener('resize', function(){ if(ROS&&ROS.isConnected) wake(); });
 
 function done(){
-  var s=SETS[S.set];
+  var isRos=(S.mode==='rosario');
+  var label=isRos?(S.lang==='la'?'Rosárium':'Rosário completo'):nm(SETS[S.set].name).replace(/<[^>]+>/g,' ');
   app.innerHTML =
-    '<div class="done-screen"><p class="eyebrow">'+nm(s.name).replace(/<[^>]+>/g,' ')+'</p><p class="amen">Amém.</p>'+
-    '<div class="rule"></div><p class="prayer">Terço concluído. Laudetur Iesus Christus.</p></div>'+
+    '<div class="done-screen"><p class="eyebrow">'+label+'</p><p class="amen">Amém.</p>'+
+    '<div class="rule"></div><p class="prayer">'+(isRos?'Rosário concluído.':'Terço concluído.')+' Laudetur Iesus Christus.</p></div>'+
     '<div class="stack"><button class="btn" data-act="finish">Voltar ao início</button></div>';
 }
 
@@ -400,12 +437,72 @@ function delayFor(){
   var st=STEPS[S.i], p=PRAYERS[st.k], w=(S.lang==='pt'?p.pt:p.la).split(/\s+/).length, bs=S.speed==='bs';
   return bs ? 700+w*170+(st.announce?1000:0) : 1500+w*360+(st.announce?2500:0);
 }
+var speakTok=0;
+var ORDPT=['Primeiro','Segundo','Terceiro','Quarto','Quinto'];
+function stepSpeech(){
+  var st=STEPS[S.i], p=PRAYERS[st.k], pt=(S.lang==='pt'), txt='';
+  if(st.firstOfSet && S.mode==='rosario'){ txt+= (pt?SETS[st.setKey].name.pt:SETS[st.setKey].name.la)+'. '; }
+  if(st.announce) txt+= pt ? ORDPT[st.dec]+' mistério. '+st.myst.pt+'. ' : st.myst.la+'. ';
+  txt+= pt ? p.pt : p.la;
+  return pt ? txt : latinForSpeech(txt);
+}
+function chunks(t){
+  var parts=t.match(/[^.;!?]+[.;!?]*/g)||[t], out=[], cur='';
+  parts.forEach(function(x){
+    x=x.trim(); if(!x) return;
+    if(cur && (cur+' '+x).length>170){ out.push(cur); cur=x; } else cur=cur?cur+' '+x:x;
+  });
+  if(cur) out.push(cur);
+  return out;
+}
+function voiceList(pt){
+  var all=window.speechSynthesis.getVoices(), pre=pt?'pt':'it';
+  var list=all.filter(function(v){ return v.lang.toLowerCase().replace('_','-').indexOf(pre)===0; });
+  if(pt){ var br=list.filter(function(v){ return /pt-br/i.test(v.lang.replace('_','-')); }); if(br.length) list=br; }
+  return list;
+}
+function narrate(text, tok, done){
+  var ss=window.speechSynthesis, pt=(S.lang==='pt'), list=voiceList(pt), v=pickVoice(list,S.voice),
+      parts=chunks(text), i=0, bs=(S.speed==='bs'), started=false;
+  function one(){
+    if(tok!==speakTok) return;
+    if(i>=parts.length){ done(true); return; }
+    var first=(i===0), u=new SpeechSynthesisUtterance(parts[i++]), wd=0;
+    u.lang=pt?'pt-BR':'it-IT';
+    u.voice=v||list[0]||null;
+    u.pitch=v?1:(S.voice==='f'?1.15:0.8);
+    u.rate=bs?1.1:0.8;
+    u.onstart=function(){ started=true; clearTimeout(wd); };
+    u.onend=function(){ clearTimeout(wd); one(); };
+    u.onerror=function(e){
+      clearTimeout(wd);
+      if(tok!==speakTok) return;
+      if(e&&(e.error==='interrupted'||e.error==='canceled')) return;
+      done(false);
+    };
+    if(first) wd=setTimeout(function(){ if(tok===speakTok&&!started){ ss.cancel(); done(false); } },4000);
+    ss.speak(u);
+  }
+  one();
+}
 function schedule(){
   clearTimeout(autoTimer);
-  if(S.auto && S.view==='pray') autoTimer=setTimeout(next, delayFor());
+  if(S.view!=='pray') return;
+  var tok=speakTok, gap=(S.speed==='bs'?120:350);
+  if(S.say && window.speechSynthesis){
+    autoTimer=setTimeout(function(){
+      narrate(stepSpeech(), tok, function(ok){
+        if(tok!==speakTok||!(S.auto||S.say)) return;
+        autoTimer=setTimeout(next, ok?gap:delayFor());
+      });
+    },150);
+  } else if(S.auto){
+    autoTimer=setTimeout(next, delayFor());
+  }
 }
 function render(){
   clearTimeout(autoTimer);
+  speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
   applyAccent();
   if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
@@ -438,21 +535,26 @@ app.addEventListener('click', function(e){
   var t=e.target.closest('button'); if(!t) return;
   if(t.dataset.voice){ S.voice=t.dataset.voice; save(); render(); return; }
   if(t.dataset.lang){ S.lang=t.dataset.lang; save(); render(); return; }
+  if(t.dataset.mode){
+    if(t.dataset.mode!==S.mode){ S.mode=t.dataset.mode; S.started=false; S.i=0; S.c=0; STEPS=build(); }
+    save(); render(); return;
+  }
   if(t.dataset.set){
     if(S.started && t.dataset.set!==S.set){ S.started=false; S.i=0; S.c=0; }
-    S.set=t.dataset.set; STEPS=build(S.set); save(); render(); return;
+    S.set=t.dataset.set; STEPS=build(); save(); render(); return;
   }
   var a=t.dataset.act;
   if(a==='start'||a==='restart') start();
   else if(a==='resume'){ STEPS=build(S.set); S.view='pray'; render(); }
   else if(a==='next') next();
   else if(a==='back') back();
-  else if(a==='say') speakText(t);
+  else if(a==='say'){ S.say=!S.say; save(); render(); }
   else if(a==='ics') downloadIcs();
   else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
   else if(a==='speed'){ S.speed=(S.speed==='bs'?'normal':'bs'); save(); render(); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
+  else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
   else if(a==='home'){ S.view='home'; render(); }
   else if(a==='finish'){ S.view='home'; S.set=todaySet; STEPS=build(S.set); render(); }
 });
@@ -479,23 +581,6 @@ var MAS=/luca|cosimo|diego|marco|giorgio|reed|felipe|jorge|daniel|ricardo|antoni
 function pickVoice(list, g){
   var f=list.filter(function(v){ return g==='f' ? FEM.test(v.name) : (MAS.test(v.name)&&!/female|fem/i.test(v.name)); });
   return f[0]||null;
-}
-function speakText(btn){
-  var ss=window.speechSynthesis; if(!ss) return;
-  if(ss.speaking){ ss.cancel(); return; }
-  var st=STEPS[S.i], p=PRAYERS[st.k], pt=(S.lang==='pt');
-  var u=new SpeechSynthesisUtterance(pt?p.pt:latinForSpeech(p.la));
-  u.lang=pt?'pt-BR':'it-IT';
-  var all=ss.getVoices(), pre=pt?'pt':'it';
-  var list=all.filter(function(v){ return v.lang.toLowerCase().replace('_','-').indexOf(pre)===0; });
-  if(pt){ var br=list.filter(function(v){ return /pt-br/i.test(v.lang.replace('_','-')); }); if(br.length) list=br; }
-  var v=pickVoice(list,S.voice);
-  u.voice = v || list[0] || null;
-  u.pitch = v ? 1 : (S.voice==='f' ? 1.15 : 0.8);
-  u.rate = 0.8;
-  u.onstart=function(){ if(btn&&btn.isConnected) btn.textContent='Parar'; };
-  u.onend=u.onerror=function(){ if(btn&&btn.isConnected) btn.textContent='Ouvir'; };
-  ss.speak(u);
 }
 if('speechSynthesis' in window) speechSynthesis.getVoices();
 
