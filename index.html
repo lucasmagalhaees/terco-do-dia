@@ -75,7 +75,7 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .prog i{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
 .prog i.done{background:var(--accent)}
 .prog i.cur::after{content:"";position:absolute;inset:0;background:var(--accent);width:var(--p,0%)}
-.where{display:flex;justify-content:space-between;gap:10px;margin:2px 0 4px}
+.where{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 10px;margin:2px 0 4px}
 .myst{margin:6px 0 14px}
 .myst .la{display:block;font-style:italic;font-weight:400;font-family:var(--body);font-size:.95rem;letter-spacing:0;color:var(--muted);margin-top:4px}
 .prayer{margin:0 0 .9em;font-size:clamp(1.22rem,4.8vw,1.42rem);line-height:1.55;max-width:34rem}
@@ -168,7 +168,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false, voice:'f' };
 
 function load(){
   try{
@@ -178,13 +178,14 @@ function load(){
     if(o.lang) S.lang = o.lang;
     if(o.speed) S.speed = o.speed;
     if(o.notif) S.notif = o.notif;
+    if(o.voice) S.voice = o.voice;
     if(o.day === todayKey && o.started && SETS[o.set]){
       S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
     }
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,voice:S.voice,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 function build(setKey){
@@ -251,6 +252,7 @@ function home(){
     '<ol class="list" style="margin-top:0">'+list+'</ol>'+
     '<p class="eyebrow label">Mistérios de</p><div class="chips">'+chips+'</div>'+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
+    '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
     '<p class="eyebrow label">Lembrete das 20:10</p>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
     '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
@@ -298,6 +300,7 @@ function pray(){
     '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div></div>'+
     '<div id="rosHolder"></div>'+
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
+      (('speechSynthesis' in window)?'<button class="mini" data-act="say">Ouvir</button>':'')+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
       '<button class="mini" data-act="speed" aria-label="Velocidade: '+(S.speed==='bs'?'BS':'normal')+'. Toque para trocar.">'+(S.speed==='bs'?'BS ⚡':'Normal')+'</button>'+
     '</div></div>'+
@@ -403,6 +406,7 @@ function schedule(){
 }
 function render(){
   clearTimeout(autoTimer);
+  if('speechSynthesis' in window) speechSynthesis.cancel();
   applyAccent();
   if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
 }
@@ -432,6 +436,7 @@ function start(){ STEPS=build(S.set); S.i=0; S.c=0; S.started=true; S.view='pray
 
 app.addEventListener('click', function(e){
   var t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.voice){ S.voice=t.dataset.voice; save(); render(); return; }
   if(t.dataset.lang){ S.lang=t.dataset.lang; save(); render(); return; }
   if(t.dataset.set){
     if(S.started && t.dataset.set!==S.set){ S.started=false; S.i=0; S.c=0; }
@@ -442,6 +447,7 @@ app.addEventListener('click', function(e){
   else if(a==='resume'){ STEPS=build(S.set); S.view='pray'; render(); }
   else if(a==='next') next();
   else if(a==='back') back();
+  else if(a==='say') speakText(t);
   else if(a==='ics') downloadIcs();
   else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
@@ -455,6 +461,43 @@ document.addEventListener('keydown', function(e){
   if(e.key==='ArrowRight'||e.key===' '){ if(document.activeElement && document.activeElement.tagName==='BUTTON' && e.key===' ') return; e.preventDefault(); next(); }
   else if(e.key==='ArrowLeft'){ back(); }
 });
+
+/* ---------- Áudio (voz do aparelho) ---------- */
+function voiceSeg(){
+  var o=[['f','Feminina'],['m','Masculina']];
+  return '<div class="seg" role="group" aria-label="Voz">'+o.map(function(x){
+    return '<button data-voice="'+x[0]+'" aria-pressed="'+(S.voice===x[0])+'">'+x[1]+'</button>';
+  }).join('')+'</div>';
+}
+/* Latim eclesiástico lido por voz italiana: ae vira e, ti+vogal vira zi (gratia = gratsia). */
+function latinForSpeech(t){
+  return t.replace(/æ/g,'e').replace(/Æ/g,'E').replace(/œ/g,'e')
+          .replace(/([^stxSTX])ti(?=[aeiouáéíóú])/g,'$1zi');
+}
+var FEM=/alice|federica|paola|elsa|ione|isabella|francesca|female|fem|joana|francisca|luciana|vit[oó]ria|camila|carla|google.*(it|pt)-.*-x-.*[bd]-/i;
+var MAS=/luca|cosimo|diego|marco|giorgio|reed|felipe|jorge|daniel|ricardo|antonio|cristiano|male|masc/i;
+function pickVoice(list, g){
+  var f=list.filter(function(v){ return g==='f' ? FEM.test(v.name) : (MAS.test(v.name)&&!/female|fem/i.test(v.name)); });
+  return f[0]||null;
+}
+function speakText(btn){
+  var ss=window.speechSynthesis; if(!ss) return;
+  if(ss.speaking){ ss.cancel(); return; }
+  var st=STEPS[S.i], p=PRAYERS[st.k], pt=(S.lang==='pt');
+  var u=new SpeechSynthesisUtterance(pt?p.pt:latinForSpeech(p.la));
+  u.lang=pt?'pt-BR':'it-IT';
+  var all=ss.getVoices(), pre=pt?'pt':'it';
+  var list=all.filter(function(v){ return v.lang.toLowerCase().replace('_','-').indexOf(pre)===0; });
+  if(pt){ var br=list.filter(function(v){ return /pt-br/i.test(v.lang.replace('_','-')); }); if(br.length) list=br; }
+  var v=pickVoice(list,S.voice);
+  u.voice = v || list[0] || null;
+  u.pitch = v ? 1 : (S.voice==='f' ? 1.15 : 0.8);
+  u.rate = 0.8;
+  u.onstart=function(){ if(btn&&btn.isConnected) btn.textContent='Parar'; };
+  u.onend=u.onerror=function(){ if(btn&&btn.isConnected) btn.textContent='Ouvir'; };
+  ss.speak(u);
+}
+if('speechSynthesis' in window) speechSynthesis.getVoices();
 
 /* ---------- Lembrete das 20:10 ---------- */
 var REM_TITLE='Boa noite, noia', REM_BODY='Hora do terço';
