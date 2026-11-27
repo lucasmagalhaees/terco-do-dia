@@ -4,6 +4,11 @@ App web (HTML único, funciona offline no celular) que acompanha o terço em por
 
 ## Recursos
 
+- **Terço mais completo:** oferecimento inicial (Vinde, Espírito Santo), interlúdio das 3 Ave-Marias (fé, esperança, caridade), meditação com referência bíblica e fruto em cada mistério, e no fim Infinitas graças, Oração do Anjo de Fátima e oração pelas almas do purgatório.
+- **Arte por mistério:** cada mistério tem cor e emblema próprios.
+- **Angelus:** disponível na tela inicial.
+- **Sequência e conquistas:** streak de dias seguidos e conquistas que vão destravando.
+- **Lembrete em horário livre** e **controle de ritmo** (atrasar/adiantar) no automático.
 - **Terço do dia ou Rosário completo:** escolhe os mistérios pelo dia da semana (gozosos, luminosos, dolorosos, gloriosos), ou reza o rosário inteiro (os quatro conjuntos, 20 mistérios) de uma vez.
 - **Terço virtual animado:** a câmera acompanha a conta atual; toque para ver inteiro ou de perto.
 - **Ouvir (português):** lê cada prece com a voz do aparelho (feminina ou masculina) e avança sozinho ao terminar.

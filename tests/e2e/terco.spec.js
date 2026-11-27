@@ -55,7 +55,7 @@ test('modo Rosário completo monta 20 dezenas e 20 mistérios', async ({ page })
       misterios: st.filter(x => x.announce).length
     };
   });
-  expect(info).toEqual({ total: 87, dezenas: 20, misterios: 20 });
+  expect(info).toEqual({ total: 91, dezenas: 20, misterios: 20 });
   await page.getByRole('button', { name: 'Começar o rosário' }).click();
   // pula as preces de abertura até o primeiro mistério e confere o rótulo do conjunto
   await page.evaluate(() => { window.S.i = window.STEPS.findIndex(s => s.announce); window.render(); });
