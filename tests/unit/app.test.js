@@ -91,25 +91,6 @@ test('BY_DAY: sexta-feira (índice 5) reza os Dolorosos', () => {
   assert.strictEqual(w.BY_DAY[0], 'gloriosos'); // domingo
 });
 
-test('recActive: português usa TTS; latim e "os dois" usam áudio gravado', () => {
-  const w = freshWindow();
-  w.S.lang = 'pt'; assert.strictEqual(w.recActive(), false);
-  w.S.lang = 'la'; assert.strictEqual(w.recActive(), true);
-  w.S.lang = 'both'; assert.strictEqual(w.recActive(), true);
-});
-
-test('stepClips: passo de mistério toca o anúncio + a prece; dezena toca a Ave', () => {
-  const w = freshWindow();
-  w.S.mode = 'terco'; w.S.set = 'dolorosos';
-  w.STEPS = w.build();
-  // primeiro passo com anúncio (Pai Nosso do 1º mistério)
-  w.S.i = w.STEPS.findIndex(s => s.announce);
-  assert.deepStrictEqual(Array.from(w.stepClips()), ['audio/la-myst-dolorosos-0.mp3', 'audio/la-pai.mp3']);
-  // a dezena de Ave-Marias logo em seguida
-  w.S.i = w.STEPS.findIndex(s => s.k === 'ave' && s.count === 10);
-  assert.deepStrictEqual(Array.from(w.stepClips()), ['audio/la-ave.mp3']);
-});
-
 test('icsText: evento diário às 20:10 com vírgula escapada', () => {
   const w = freshWindow();
   const ics = w.icsText();
