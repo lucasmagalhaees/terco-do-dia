@@ -288,6 +288,7 @@ function home(){
     chipsBlock+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
+    '<p class="note" style="margin:6px 0 0">O latim usa áudio gravado (pronúncia latina). A voz escolhida vale para o português.</p>'+
     '<p class="eyebrow label">Lembrete das 20:10</p>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
     '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
@@ -336,7 +337,7 @@ function pray(){
     '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div><button class="exit" data-act="reset" aria-label="Reiniciar do começo">↺</button></div>'+
     '<div id="rosHolder"></div>'+
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
-      (('speechSynthesis' in window)?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>':'')+
+      '<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>'+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
       '<button class="mini" data-act="speed" aria-label="Velocidade: '+(S.speed==='bs'?'BS':'normal')+'. Toque para trocar.">'+(S.speed==='bs'?'BS ⚡':'Normal')+'</button>'+
     '</div></div>'+
@@ -462,7 +463,9 @@ function voiceList(pt){
   return list;
 }
 function narrate(text, tok, done){
-  var ss=window.speechSynthesis, pt=(S.lang==='pt'), list=voiceList(pt), v=pickVoice(list,S.voice),
+  var ss=window.speechSynthesis;
+  if(!ss){ done(false); return; }
+  var _ss=ss, pt=(S.lang==='pt'), list=voiceList(pt), v=pickVoice(list,S.voice),
       parts=chunks(text), i=0, bs=(S.speed==='bs'), started=false;
   function one(){
     if(tok!==speakTok) return;
@@ -485,13 +488,42 @@ function narrate(text, tok, done){
   }
   one();
 }
+var AUD=null;
+function audioEl(){ if(!AUD){ AUD=new Audio(); AUD.preload='auto'; } return AUD; }
+var CLIPS={ base:'audio/', prayer:{ sinal:'la-sinal.mp3', credo:'la-credo.mp3', pai:'la-pai.mp3', ave:'la-ave.mp3', gloria:'la-gloria.mp3', fatima:'la-fatima.mp3', salve:'la-salve.mp3' } };
+function recActive(){ return S.lang!=='pt'; } // latim ou os dois => áudio latino gravado
+function stepClips(){
+  var st=STEPS[S.i], arr=[];
+  if(st.announce && st.setKey) arr.push(CLIPS.base+'la-myst-'+st.setKey+'-'+st.dec+'.mp3');
+  if(CLIPS.prayer[st.k]) arr.push(CLIPS.base+CLIPS.prayer[st.k]);
+  return arr;
+}
+function playClips(urls, tok, done){
+  if(!urls.length){ done(true); return; }
+  var a=audioEl(), i=0, fell=false;
+  a.playbackRate=(S.speed==='bs'?1.3:1.0);
+  function one(){
+    if(tok!==speakTok) return;
+    if(i>=urls.length){ done(true); return; }
+    a.onended=function(){ one(); };
+    a.onerror=function(){ if(fell||tok!==speakTok) return; fell=true; narrate(stepSpeech(), tok, done); };
+    a.src=urls[i++];
+    var pr=a.play();
+    if(pr&&pr.catch) pr.catch(function(){ if(tok===speakTok&&!fell) done(false); });
+  }
+  one();
+}
+function speakStep(tok, done){
+  if(recActive()) playClips(stepClips(), tok, done);
+  else narrate(stepSpeech(), tok, done);
+}
 function schedule(){
   clearTimeout(autoTimer);
   if(S.view!=='pray') return;
   var tok=speakTok, gap=(S.speed==='bs'?120:350);
-  if(S.say && window.speechSynthesis){
+  if(S.say){
     autoTimer=setTimeout(function(){
-      narrate(stepSpeech(), tok, function(ok){
+      speakStep(tok, function(ok){
         if(tok!==speakTok||!(S.auto||S.say)) return;
         autoTimer=setTimeout(next, ok?gap:delayFor());
       });
@@ -504,6 +536,7 @@ function render(){
   clearTimeout(autoTimer);
   speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(AUD){ try{ AUD.pause(); }catch(e){} }
   applyAccent();
   if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
 }
