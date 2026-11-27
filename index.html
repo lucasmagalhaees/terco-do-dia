@@ -171,7 +171,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, speed:'normal', auto:false, notif:false, voice:'f', say:false, mode:'terco' };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, mode:'terco' };
 
 function load(){
   try{
@@ -179,7 +179,6 @@ function load(){
     if(!raw) return;
     var o = JSON.parse(raw);
     if(o.lang) S.lang = o.lang;
-    if(o.speed) S.speed = o.speed;
     if(o.notif) S.notif = o.notif;
     if(o.voice) S.voice = o.voice;
     if(o.say) S.say = o.say;
@@ -190,7 +189,7 @@ function load(){
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,speed:S.speed,notif:S.notif,voice:S.voice,say:S.say,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,notif:S.notif,voice:S.voice,say:S.say,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
@@ -288,7 +287,6 @@ function home(){
     chipsBlock+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
-    '<p class="note" style="margin:6px 0 0">O latim usa áudio gravado (pronúncia latina). A voz escolhida vale para o português.</p>'+
     '<p class="eyebrow label">Lembrete das 20:10</p>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
     '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
@@ -337,9 +335,8 @@ function pray(){
     '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div><button class="exit" data-act="reset" aria-label="Reiniciar do começo">↺</button></div>'+
     '<div id="rosHolder"></div>'+
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
-      '<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>'+
+      ((S.lang==='pt'&&('speechSynthesis' in window))?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>':'')+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
-      '<button class="mini" data-act="speed" aria-label="Velocidade: '+(S.speed==='bs'?'BS':'normal')+'. Toque para trocar.">'+(S.speed==='bs'?'BS ⚡':'Normal')+'</button>'+
     '</div></div>'+
     '<div class="scroll">'+
       head+title+note+pair(p)+
@@ -398,7 +395,6 @@ function curBead(){
 }
 function updateRosary(){
   var c=curBead(); CURID=c.id;
-  ROS.style.setProperty('--pulse', S.speed==='bs'?'.9s':'1.9s');
   for(var id in BEADS){ var b=BEADS[id]; b.g.setAttribute('class', id===c.id?'cur':(b.p<c.p?'done':'')); }
   wake();
 }
@@ -412,7 +408,7 @@ function camTick(){
   CAMRAF=0; if(!ROS||!ROS.isConnected) return;
   var t=camTarget(), moving=false, i;
   if(!CAM||RM) CAM=t.slice();
-  else for(i=0;i<4;i++){ CAM[i]+=(t[i]-CAM[i])*(S.speed==='bs'?0.28:0.14); if(Math.abs(t[i]-CAM[i])>0.05) moving=true; }
+  else for(i=0;i<4;i++){ CAM[i]+=(t[i]-CAM[i])*0.14; if(Math.abs(t[i]-CAM[i])>0.05) moving=true; }
   ROSVG.setAttribute('viewBox',CAM.map(function(v){return v.toFixed(2);}).join(' '));
   if(moving||performance.now()<CAMUNTIL) CAMRAF=requestAnimationFrame(camTick);
 }
@@ -435,8 +431,8 @@ function done(){
 
 var autoTimer=0;
 function delayFor(){
-  var st=STEPS[S.i], p=PRAYERS[st.k], w=(S.lang==='pt'?p.pt:p.la).split(/\s+/).length, bs=S.speed==='bs';
-  return bs ? 700+w*170+(st.announce?1000:0) : 1500+w*360+(st.announce?2500:0);
+  var st=STEPS[S.i], p=PRAYERS[st.k], w=(S.lang==='pt'?p.pt:p.la).split(/\s+/).length;
+  return 1500+w*360+(st.announce?2500:0);
 }
 var speakTok=0;
 var ORDPT=['Primeiro','Segundo','Terceiro','Quarto','Quinto'];
@@ -466,7 +462,7 @@ function narrate(text, tok, done){
   var ss=window.speechSynthesis;
   if(!ss){ done(false); return; }
   var _ss=ss, pt=(S.lang==='pt'), list=voiceList(pt), v=pickVoice(list,S.voice),
-      parts=chunks(text), i=0, bs=(S.speed==='bs'), started=false;
+      parts=chunks(text), i=0, started=false;
   function one(){
     if(tok!==speakTok) return;
     if(i>=parts.length){ done(true); return; }
@@ -474,7 +470,7 @@ function narrate(text, tok, done){
     u.lang=pt?'pt-BR':'it-IT';
     u.voice=v||list[0]||null;
     u.pitch=v?1:(S.voice==='f'?1.15:0.8);
-    u.rate=bs?1.1:0.8;
+    u.rate=0.8;
     u.onstart=function(){ started=true; clearTimeout(wd); };
     u.onend=function(){ clearTimeout(wd); one(); };
     u.onerror=function(e){
@@ -488,42 +484,13 @@ function narrate(text, tok, done){
   }
   one();
 }
-var AUD=null;
-function audioEl(){ if(!AUD){ AUD=new Audio(); AUD.preload='auto'; } return AUD; }
-var CLIPS={ base:'audio/', prayer:{ sinal:'la-sinal.mp3', credo:'la-credo.mp3', pai:'la-pai.mp3', ave:'la-ave.mp3', gloria:'la-gloria.mp3', fatima:'la-fatima.mp3', salve:'la-salve.mp3' } };
-function recActive(){ return S.lang!=='pt'; } // latim ou os dois => áudio latino gravado
-function stepClips(){
-  var st=STEPS[S.i], arr=[];
-  if(st.announce && st.setKey) arr.push(CLIPS.base+'la-myst-'+st.setKey+'-'+st.dec+'.mp3');
-  if(CLIPS.prayer[st.k]) arr.push(CLIPS.base+CLIPS.prayer[st.k]);
-  return arr;
-}
-function playClips(urls, tok, done){
-  if(!urls.length){ done(true); return; }
-  var a=audioEl(), i=0, fell=false;
-  a.playbackRate=(S.speed==='bs'?1.3:1.0);
-  function one(){
-    if(tok!==speakTok) return;
-    if(i>=urls.length){ done(true); return; }
-    a.onended=function(){ one(); };
-    a.onerror=function(){ if(fell||tok!==speakTok) return; fell=true; narrate(stepSpeech(), tok, done); };
-    a.src=urls[i++];
-    var pr=a.play();
-    if(pr&&pr.catch) pr.catch(function(){ if(tok===speakTok&&!fell) done(false); });
-  }
-  one();
-}
-function speakStep(tok, done){
-  if(recActive()) playClips(stepClips(), tok, done);
-  else narrate(stepSpeech(), tok, done);
-}
 function schedule(){
   clearTimeout(autoTimer);
   if(S.view!=='pray') return;
-  var tok=speakTok, gap=(S.speed==='bs'?120:350);
-  if(S.say){
+  var tok=speakTok, gap=350;
+  if(S.say && S.lang==='pt' && window.speechSynthesis){
     autoTimer=setTimeout(function(){
-      speakStep(tok, function(ok){
+      narrate(stepSpeech(), tok, function(ok){
         if(tok!==speakTok||!(S.auto||S.say)) return;
         autoTimer=setTimeout(next, ok?gap:delayFor());
       });
@@ -536,7 +503,6 @@ function render(){
   clearTimeout(autoTimer);
   speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
-  if(AUD){ try{ AUD.pause(); }catch(e){} }
   applyAccent();
   if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
 }
@@ -585,7 +551,6 @@ app.addEventListener('click', function(e){
   else if(a==='ics') downloadIcs();
   else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
-  else if(a==='speed'){ S.speed=(S.speed==='bs'?'normal':'bs'); save(); render(); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
   else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
   else if(a==='home'){ S.view='home'; render(); }
