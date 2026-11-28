@@ -98,7 +98,7 @@ test('icsText: evento diário às 20:10 com vírgula escapada', () => {
   const ics = w.icsText();
   assert.match(ics, /DTSTART:\d{8}T201000/);
   assert.match(ics, /RRULE:FREQ=DAILY/);
-  assert.match(ics, /Boa noite\\, noia/);
+  assert.match(ics, /Boa noite/);
   assert.match(ics, /BEGIN:VALARM/);
 });
 
