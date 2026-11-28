@@ -28,3 +28,19 @@ npm run test:e2e    # Playwright (usa o Google Chrome do sistema)
 npm test            # roda os dois
 ```
 - **Santo do dia** e **álbum de santos** (rezar o terço do dia desbloqueia o santo).
+
+## Vozes do "Ouvir" (áudio humano)
+
+O "Ouvir" toca arquivos de áudio em `audio/f/` (feminina) e `audio/m/` (masculina), um por oração/mistério. Enquanto os arquivos não existem, ele cai na voz do aparelho (TTS). Com os arquivos, toca também em segundo plano (tela travada), via MediaSession.
+
+Para gerar as vozes com o ElevenLabs (há vozes pt-BR ótimas; dá pra usar uma **voz clonada** sua):
+
+```
+npm install
+ELEVENLABS_API_KEY=sk_... \
+ELEVEN_VOICE_F=<voiceId_feminina> \
+ELEVEN_VOICE_M=<voiceId_masculina> \
+npm run gen:audio
+```
+
+Isso cria 32 clipes por voz (12 orações + 20 mistérios), lendo os textos do próprio `index.html`. Rode de novo para gerar só o que falta. Depois, `git add audio && commit`. Para trocar de provedor (OpenAI, Google, Azure), ajuste a função `synthesize()` em `scripts/gen-audio.mjs`.
