@@ -277,7 +277,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, theme:'auto', remTime:'20:10', timeLock:true, pace:1.2, log:[], setsDone:{}, rosDone:false, santos:{}, mode:'terco' };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'m', say:false, vrate:1, theme:'auto', remTime:'20:10', timeLock:true, pace:1.2, log:[], setsDone:{}, rosDone:false, santos:{}, mode:'terco' };
 
 function load(){
   try{
@@ -287,8 +287,9 @@ function load(){
     if(o.lang) S.lang = o.lang;
     if(o.theme) S.theme = o.theme;
     if(o.notif) S.notif = o.notif;
-    if(o.voice) S.voice = o.voice;
+    S.voice = 'm';
     if(o.say) S.say = o.say;
+    if(o.vrate) S.vrate = o.vrate;
     if(o.remTime) S.remTime = o.remTime;
     if(typeof o.timeLock==='boolean') S.timeLock = o.timeLock;
     if(o.pace) S.pace = o.pace;
@@ -303,7 +304,7 @@ function load(){
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,theme:S.theme,notif:S.notif,voice:S.voice,say:S.say,remTime:S.remTime,timeLock:S.timeLock,pace:S.pace,log:S.log,setsDone:S.setsDone,rosDone:S.rosDone,santos:S.santos,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,theme:S.theme,notif:S.notif,voice:S.voice,say:S.say,vrate:S.vrate,remTime:S.remTime,timeLock:S.timeLock,pace:S.pace,log:S.log,setsDone:S.setsDone,rosDone:S.rosDone,santos:S.santos,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
@@ -613,7 +614,6 @@ function home(){
     chipsBlock+
     '<p class="eyebrow label">Tema</p>'+themeSeg()+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
-    '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
     '<p class="eyebrow label">Lembrete diário</p>'+
     '<p class="note" style="margin:0 0 8px">Horário: ajuste no relógio do topo da tela.</p>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
@@ -673,11 +673,16 @@ function pray(){
     '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div><button class="exit" data-act="reset" aria-label="Reiniciar do começo">↺</button></div>'+
     '<div id="rosHolder"></div>'+
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
-      ((S.lang==='pt'&&('speechSynthesis' in window))?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>':'')+
+      ((S.lang==='pt')?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">'+(S.say?'❚❚ Ouvindo':'▶ Ouvir')+'</button>':'')+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
       '<button class="mini" data-act="faster" aria-label="Mais rápido">–</button>'+
       '<span class="pace" aria-label="Ritmo">'+S.pace.toFixed(1)+'×</span>'+
       '<button class="mini" data-act="slower" aria-label="Mais devagar">+</button>'+
+    '</div>'+
+    '<div class="ctl" style="margin-top:6px"><span class="pace" aria-label="Velocidade da voz" style="opacity:.75">🗣 Voz</span>'+
+      '<button class="mini" data-act="vdown" aria-label="Voz mais devagar">–</button>'+
+      '<span class="pace">'+S.vrate.toFixed(1)+'×</span>'+
+      '<button class="mini" data-act="vup" aria-label="Voz mais rápida">+</button>'+
     '</div></div>'+
     '<div class="scroll">'+
       head+title+note+pair(p)+
@@ -813,8 +818,8 @@ function narrate(text, tok, done){
     var first=(i===0), u=new SpeechSynthesisUtterance(parts[i++]), wd=0;
     u.lang=pt?'pt-BR':'it-IT';
     u.voice=v||list[0]||null;
-    u.pitch=v?1:(S.voice==='f'?1.15:0.8);
-    u.rate=0.8;
+    u.pitch=v?1:0.8;
+    u.rate=Math.max(0.5,Math.min(2,0.85*(S.vrate||1)));
     u.onstart=function(){ started=true; clearTimeout(wd); };
     u.onend=function(){ clearTimeout(wd); one(); };
     u.onerror=function(e){
@@ -859,7 +864,7 @@ function playClips(ids, tok, done){
     var id=ids[i++];
     a.onended=function(){ one(); };
     a.onerror=function(){ clipFail[id]=true; fail(); };
-    a.src=clipUrl(id); setMedia();
+    a.src=clipUrl(id); a.playbackRate=S.vrate||1; setMedia();
     var pr=a.play();
     if(pr&&pr.catch) pr.catch(function(){ clipFail[id]=true; fail(); });
   }
@@ -871,12 +876,10 @@ function schedule(){
   if(S.view!=='pray') return;
   var tok=speakTok, gap=Math.round(350*S.pace);
   if(S.say && S.lang==='pt'){
-    autoTimer=setTimeout(function(){
-      speakStep(tok, function(ok){
-        if(tok!==speakTok||!(S.auto||S.say)) return;
-        autoTimer=setTimeout(next, ok?gap:delayFor());
-      });
-    },150);
+    speakStep(tok, function(ok){
+      if(tok!==speakTok||!(S.auto||S.say)) return;
+      autoTimer=setTimeout(next, ok?gap:delayFor());
+    });
   } else if(S.auto){
     autoTimer=setTimeout(next, delayFor());
   }
@@ -947,6 +950,8 @@ app.addEventListener('click', function(e){
   else if(a==='auto'){ S.auto=!S.auto; render(); }
   else if(a==='slower'){ S.pace=Math.min(2.5, Math.round((S.pace+0.3)*10)/10); save(); render(); }
   else if(a==='faster'){ S.pace=Math.max(0.6, Math.round((S.pace-0.3)*10)/10); save(); render(); }
+  else if(a==='vup'){ S.vrate=Math.min(1.6, Math.round((S.vrate+0.1)*10)/10); if(AUD){ try{ AUD.playbackRate=S.vrate; }catch(e){} } save(); render(); }
+  else if(a==='vdown'){ S.vrate=Math.max(0.7, Math.round((S.vrate-0.1)*10)/10); if(AUD){ try{ AUD.playbackRate=S.vrate; }catch(e){} } save(); render(); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
   else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
   else if(a==='angelus'){ S.view='angelus'; render(); }
