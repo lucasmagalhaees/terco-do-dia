@@ -74,3 +74,40 @@ test('modo Ouvir avança sozinho ao terminar a prece', async ({ page }) => {
   const falou = await page.evaluate(() => window.__spoken.length);
   expect(falou).toBeGreaterThan(0);
 });
+
+test('home: escolhe velocidade da voz e ritmo do automático antes de rezar', async ({ page }) => {
+  await page.goto(url);
+  await page.getByRole('group', { name: 'Velocidade da voz' }).getByRole('button', { name: '1,2×' }).click();
+  await page.getByRole('group', { name: 'Ritmo do automático' }).getByRole('button', { name: 'Calmo' }).click();
+  expect(await page.evaluate(() => [window.S.vrate, window.S.pace])).toEqual([1.2, 1.6]);
+  const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem('terco-do-dia-v1')));
+  expect([salvo.vrate, salvo.pace]).toEqual([1.2, 1.6]);
+  await expect(page.locator('[data-vrate="1.2"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-pace="1.6"]')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('reza: player enxuto, ajustes recolhidos e separados (voz × ritmo)', async ({ page }) => {
+  await page.goto(url);
+  await page.getByRole('button', { name: 'Começar o terço' }).click();
+  await expect(page.locator('.player .pbtn')).toHaveCount(3);
+  await expect(page.locator('#tunebox')).toBeHidden();
+  await page.getByRole('button', { name: 'Ajustar velocidades' }).click();
+  await expect(page.locator('#tunebox')).toBeVisible();
+  const i0 = await page.evaluate(() => window.S.i);
+  await page.locator('#tunebox [data-vrate="1.5"]').click();
+  await page.locator('#tunebox [data-pace="0.9"]').click();
+  expect(await page.evaluate(() => [window.S.vrate, window.S.pace, window.S.i])).toEqual([1.5, 0.9, i0]);
+  await expect(page.locator('#tunebox [data-vrate="1.5"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#tunebox')).toBeVisible();
+  // sem scroll horizontal no iPhone
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('valores antigos de velocidade continuam válidos e marcam o preset mais próximo', async ({ page }) => {
+  await page.goto(url);
+  await page.evaluate(() => localStorage.setItem('terco-do-dia-v1', JSON.stringify({ vrate: 1.1, pace: 1.8 })));
+  await page.evaluate(() => { window.load(); window.render(); });
+  expect(await page.evaluate(() => [window.S.vrate, window.S.pace])).toEqual([1.1, 1.8]);
+  await expect(page.locator('[data-vrate][aria-pressed="true"]')).toHaveCount(1);
+  await expect(page.locator('[data-pace][aria-pressed="true"]')).toHaveCount(1);
+});
