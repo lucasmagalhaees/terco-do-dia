@@ -950,7 +950,7 @@ function pickVoice(list, g){
 if('speechSynthesis' in window) speechSynthesis.getVoices();
 
 /* ---------- Lembrete das 20:10 ---------- */
-var REM_TITLE='Boa noite, noia', REM_BODY='Hora do terço';
+var REM_TITLE='Boa noite', REM_BODY='Hora do terço';
 function pad2(n){ return String(n).padStart(2,'0'); }
 function icsText(){
   var d=new Date(), ymd=d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate());
@@ -958,7 +958,7 @@ function icsText(){
   var hm=(S.remTime||'20:10').split(':'), H=+hm[0]||0, M=+hm[1]||0;
   var endM=(H*60+M+20)%1440;
   var start=pad2(H)+pad2(M)+'00', end=pad2(Math.floor(endM/60))+pad2(endM%60)+'00';
-  var msg='Boa noite\\, noia! Hora do terço';
+  var msg='Boa noite! Hora do terço';
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//terco-do-dia//PT','CALSCALE:GREGORIAN','BEGIN:VEVENT',
     'UID:terco-diario@terco-do-dia','DTSTAMP:'+stamp,'DTSTART:'+ymd+'T'+start,'DTEND:'+ymd+'T'+end,'RRULE:FREQ=DAILY',
     'SUMMARY:'+msg,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+msg,'TRIGGER:PT0S','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
