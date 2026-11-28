@@ -105,6 +105,28 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .ctl{display:flex;gap:6px}
 .mini{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:.8rem;min-height:36px;white-space:nowrap}
 .mini[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.pace{align-self:center;font-size:.8rem;color:var(--muted);min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.med{margin:2px 0 6px;font-style:italic;color:var(--ink);font-size:.98rem;line-height:1.45}
+.med .ref{font-style:normal;font-family:var(--display);font-size:.72rem;letter-spacing:.06em;color:var(--accent);margin-right:6px}
+.fruit{margin:0 0 6px;font-size:.82rem;color:var(--muted)}
+.timerow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+.timerow span{font-size:.92rem;color:var(--muted)}
+.timerow input[type=time]{font:inherit;font-size:1.1rem;color:var(--ink);background:none;border:0;color-scheme:light dark}
+.streak{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:14px;margin:18px 0 4px}
+.sline{display:flex;align-items:center;gap:14px}
+.snum{font-family:var(--display);font-weight:600;font-size:2.3rem;line-height:1;color:var(--accent);min-width:1.5em;text-align:center;font-variant-numeric:tabular-nums}
+.sbig{margin:0;font-weight:600}
+.ssub{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
+.dots{display:flex;gap:6px;margin:12px 0 2px}
+.dots i{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--muted);opacity:.55}
+.badge.got{opacity:1;color:var(--ink);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.emblem{display:flex;justify-content:center;margin:0 0 8px}
+.emblem svg{width:56px;height:56px}
+.vr{margin:0 0 12px;line-height:1.5;font-size:1.05rem}
+.vr b{color:var(--accent);font-family:var(--display);margin-right:5px}
 @keyframes pulse{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion: reduce){ .beads b,.ros,.ros .bd{transition:none} .ros .cur .ring{animation:none;opacity:.8} }
 </style>
@@ -132,6 +154,18 @@ var PRAYERS = {
   fatima:{ name:{pt:'Ó meu Jesus',la:'O mi Iesu'},
     pt:'Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o céu e socorrei principalmente as que mais precisarem.',
     la:'O mi Iesu, dimítte nobis débita nostra, salva nos ab igne inférni, perdúc in cælum omnes ánimas, præsértim eas, quæ misericórdiæ tuæ máxime indigent.' },
+  anjo:{ name:{pt:'Oração do Anjo (Fátima)',la:'Oratio Angeli'},
+    pt:'Meu Deus, eu creio, adoro, espero e amo-Vos. Peço-Vos perdão para os que não creem, não adoram, não esperam e não Vos amam.',
+    la:'' },
+  defuntos:{ name:{pt:'Pelas almas do purgatório',la:'Réquiem ætérnam'},
+    pt:'Dai-lhes, Senhor, o descanso eterno, e brilhe para elas a luz perpétua. Descansem em paz. Amém.',
+    la:'Réquiem ætérnam dona eis, Dómine, et lux perpétua lúceat eis. Requiéscant in pace. Amen.' },
+  veni:{ name:{pt:'Vinde, Espírito Santo',la:'Veni, Sancte Spíritus'},
+    pt:'Vinde, Espírito Santo, enchei os corações dos vossos fiéis e acendei neles o fogo do vosso amor. Enviai o vosso Espírito e tudo será criado, e renovareis a face da terra.',
+    la:'Veni, Sancte Spíritus, reple tuórum corda fidélium, et tui amóris in eis ignem accénde. Emítte Spíritum tuum, et creabúntur; et renovábis fáciem terræ.' },
+  gracas:{ name:{pt:'Infinitas graças',la:'Infinitas graças'},
+    pt:'Infinitas graças vos damos, ó soberana Rainha, pelos benefícios que todos os dias recebemos de vossas mãos. Dignai-vos, agora e sempre, tomar-nos debaixo da vossa proteção; e, para mais vos obsequiarmos, vos saudamos com uma Salve Rainha.',
+    la:'' },
   salve:{ name:{pt:'Salve Rainha',la:'Salve Regína'},
     pt:'Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva; a vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei; e depois deste desterro mostrai-nos Jesus, bendito fruto do vosso ventre, ó clemente, ó piedosa, ó doce sempre Virgem Maria. Rogai por nós, Santa Mãe de Deus, para que sejamos dignos das promessas de Cristo. Amém.',
     la:'Salve, Regína, Mater misericórdiæ, vita, dulcédo, et spes nostra, salve. Ad te clamámus, éxsules fílii Hevæ. Ad te suspirámus, geméntes et flentes in hac lacrimárum valle. Eia ergo, Advocáta nostra, illos tuos misericórdes óculos ad nos convérte. Et Iesum, benedíctum fructum ventris tui, nobis post hoc exsílium osténde. O clemens, O pia, O dulcis Virgo María. Ora pro nobis, sancta Dei Génetrix. Ut digni efficiámur promissiónibus Christi. Amen.' }
@@ -139,29 +173,56 @@ var PRAYERS = {
 
 var SETS = {
   gozosos:{ short:'Gozosos', name:{pt:'Mistérios Gozosos',la:'Mystéria Gaudii'}, days:'segunda e sábado', acc:'#d3a437', on:'#2b2117', items:[
-    {pt:'A Anunciação do Anjo a Maria',la:'Annuntiátio Angeli ad Maríam'},
-    {pt:'A Visitação de Maria a Isabel',la:'Visitátio Maríæ ad Elísabeth'},
-    {pt:'O Nascimento de Jesus em Belém',la:'Nativitas Dómini in Béthlehem'},
-    {pt:'A Apresentação de Jesus no Templo',la:'Præsentátio Iesu in Templo'},
-    {pt:'O Encontro do Menino Jesus no Templo',la:'Invéntio Púeri Iesu in Templo'}]},
+    {pt:'A Anunciação do Anjo a Maria',la:'Annuntiátio Angeli ad Maríam',ref:'Lc 1,26-38',fruto:'Humildade',med:'Neste mistério contemplamos o Anjo Gabriel anunciar a Maria que ela será a Mãe de Deus, e o seu sim: "Faça-se em mim segundo a vossa palavra."'},
+    {pt:'A Visitação de Maria a Isabel',la:'Visitátio Maríæ ad Elísabeth',ref:'Lc 1,39-56',fruto:'Caridade',med:'Neste mistério contemplamos Maria visitar sua prima Isabel, que a saúda bendita entre as mulheres, e o seu cântico, o Magnificat.'},
+    {pt:'O Nascimento de Jesus em Belém',la:'Nativitas Dómini in Béthlehem',ref:'Lc 2,1-20',fruto:'Pobreza',med:'Neste mistério contemplamos o nascimento de Jesus em Belém, deitado numa manjedoura e adorado pelos pastores.'},
+    {pt:'A Apresentação de Jesus no Templo',la:'Præsentátio Iesu in Templo',ref:'Lc 2,22-39',fruto:'Obediência',med:'Neste mistério contemplamos Maria e José apresentarem Jesus no Templo, reconhecido por Simeão como luz dos povos.'},
+    {pt:'O Encontro do Menino Jesus no Templo',la:'Invéntio Púeri Iesu in Templo',ref:'Lc 2,41-52',fruto:'Busca de Jesus',med:'Neste mistério contemplamos Maria e José encontrarem, após três dias, o Menino Jesus no Templo, entre os doutores.'}]},
   luminosos:{ short:'Luminosos', name:{pt:'Mistérios Luminosos',la:'Mystéria Lucis'}, days:'quinta-feira', acc:'#3f73b0', on:'#ffffff', items:[
-    {pt:'O Batismo de Jesus no Jordão',la:'Baptísmus Iesu in Iordáne'},
-    {pt:'As Bodas de Caná',la:'Núptiæ in Cana'},
-    {pt:'O Anúncio do Reino de Deus',la:'Annuntiátio Regni Dei'},
-    {pt:'A Transfiguração de Jesus',la:'Transfiguratio Dómini'},
-    {pt:'A Instituição da Eucaristia',la:'Institútio Eucharístiæ'}]},
+    {pt:'O Batismo de Jesus no Jordão',la:'Baptísmus Iesu in Iordáne',ref:'Mt 3,13-17',fruto:'Fidelidade ao Batismo',med:'Neste mistério contemplamos o Batismo de Jesus no Jordão, quando o Pai o proclama: "Este é o meu Filho amado."'},
+    {pt:'As Bodas de Caná',la:'Núptiæ in Cana',ref:'Jo 2,1-12',fruto:'Confiança em Maria',med:'Neste mistério contemplamos as bodas de Caná, onde, por intercessão de Maria, Jesus transforma a água em vinho: "Fazei tudo o que Ele vos disser."'},
+    {pt:'O Anúncio do Reino de Deus',la:'Annuntiátio Regni Dei',ref:'Mc 1,14-15',fruto:'Conversão',med:'Neste mistério contemplamos Jesus anunciar o Reino de Deus e chamar à conversão: "Convertei-vos e crede no Evangelho."'},
+    {pt:'A Transfiguração de Jesus',la:'Transfiguratio Dómini',ref:'Mt 17,1-8',fruto:'Desejo da santidade',med:'Neste mistério contemplamos a Transfiguração de Jesus no monte, revelando a sua glória a Pedro, Tiago e João.'},
+    {pt:'A Instituição da Eucaristia',la:'Institútio Eucharístiæ',ref:'Mt 26,26-28',fruto:'Amor eucarístico',med:'Neste mistério contemplamos a instituição da Eucaristia na Última Ceia: "Isto é o meu corpo... isto é o meu sangue."'}]},
   dolorosos:{ short:'Dolorosos', name:{pt:'Mistérios Dolorosos',la:'Mystéria Dolóris'}, days:'terça e sexta-feira', acc:'#8c2a3a', on:'#ffffff', items:[
-    {pt:'A Agonia de Jesus no Horto',la:'Agonía Iesu in Horto'},
-    {pt:'A Flagelação de Jesus',la:'Flagellátio Dómini'},
-    {pt:'A Coroação de Espinhos',la:'Coronátio Spinis'},
-    {pt:'Jesus carrega a Cruz',la:'Baiulátio Crucis'},
-    {pt:'A Crucificação e Morte de Jesus',la:'Crucifíxio et Mors Dómini'}]},
+    {pt:'A Agonia de Jesus no Horto',la:'Agonía Iesu in Horto',ref:'Mt 26,36-46',fruto:'Contrição',med:'Neste mistério contemplamos a agonia de Jesus no Horto: "Pai, não se faça a minha vontade, mas a vossa."'},
+    {pt:'A Flagelação de Jesus',la:'Flagellátio Dómini',ref:'Jo 19,1',fruto:'Mortificação',med:'Neste mistério contemplamos Jesus preso à coluna e flagelado por nossos pecados.'},
+    {pt:'A Coroação de Espinhos',la:'Coronátio Spinis',ref:'Mt 27,27-31',fruto:'Humildade',med:'Neste mistério contemplamos Jesus coroado de espinhos e escarnecido como rei.'},
+    {pt:'Jesus carrega a Cruz',la:'Baiulátio Crucis',ref:'Jo 19,16-17',fruto:'Paciência',med:'Neste mistério contemplamos Jesus carregar a cruz até o Calvário, caindo sob o seu peso.'},
+    {pt:'A Crucificação e Morte de Jesus',la:'Crucifíxio et Mors Dómini',ref:'Jo 19,18-30',fruto:'Perseverança',med:'Neste mistério contemplamos Jesus crucificado, que entrega o espírito: "Está consumado."'}]},
   gloriosos:{ short:'Gloriosos', name:{pt:'Mistérios Gloriosos',la:'Mystéria Glóriæ'}, days:'quarta-feira e domingo', acc:'#c7b06a', on:'#2b2117', items:[
-    {pt:'A Ressurreição de Jesus',la:'Resurréctio Dómini'},
-    {pt:'A Ascensão de Jesus ao Céu',la:'Ascénsio Dómini'},
-    {pt:'A Vinda do Espírito Santo',la:'Descénsus Spíritus Sancti'},
-    {pt:'A Assunção de Maria',la:'Assúmptio Maríæ'},
-    {pt:'A Coroação de Maria',la:'Coronátio Maríæ'}]}
+    {pt:'A Ressurreição de Jesus',la:'Resurréctio Dómini',ref:'Mc 16,1-7',fruto:'Fé',med:'Neste mistério contemplamos a Ressurreição de Jesus, que ao terceiro dia vence a morte.'},
+    {pt:'A Ascensão de Jesus ao Céu',la:'Ascénsio Dómini',ref:'At 1,6-11',fruto:'Esperança',med:'Neste mistério contemplamos Jesus subir ao Céu, quarenta dias após a Ressurreição.'},
+    {pt:'A Vinda do Espírito Santo',la:'Descénsus Spíritus Sancti',ref:'At 2,1-13',fruto:'Dons do Espírito',med:'Neste mistério contemplamos a vinda do Espírito Santo sobre Maria e os apóstolos, em línguas de fogo.'},
+    {pt:'A Assunção de Maria',la:'Assúmptio Maríæ',ref:'Ap 12,1',fruto:'Graça de boa morte',med:'Neste mistério contemplamos Maria ser elevada, em corpo e alma, à glória do Céu.'},
+    {pt:'A Coroação de Maria',la:'Coronátio Maríæ',ref:'Ap 12,1',fruto:'Confiança em Maria',med:'Neste mistério contemplamos Maria ser coroada Rainha do Céu e da terra.'}]}
+};
+var MOTIFS={
+ lily:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"><path d="M24 40V18"/><path d="M24 18c-5-6-12-5-13 2 6 2 11-1 13-2z"/><path d="M24 18c5-6 12-5 13 2-6 2-11-1-13-2z"/><path d="M24 16c-2-7 2-11 0-13-2 2 2 6 0 13z"/></g></svg>',
+ dove:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30c6 2 12 0 16-6 3 5 8 6 12 4-2 6-8 10-15 10-8 0-13-4-13-8z"/><path d="M26 24l6-8"/><circle cx="33" cy="15" r="1.4" fill="var(--accent)"/></g></svg>',
+ star:'<svg viewBox="0 0 48 48"><path d="M24 6l3.4 10.4H38l-8.4 6.1 3.2 10.1L24 26.5 15.2 32.7l3.2-10.1L10 16.4h10.6z" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+ flame:'<svg viewBox="0 0 48 48"><path d="M24 7c6 7 10 11 10 18a10 10 0 11-20 0c0-4 2-7 5-9 0 3 1 5 3 6-1-5 0-9 2-15z" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+ sun:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"><circle cx="24" cy="24" r="8"/><path d="M24 4v5M24 39v5M4 24h5M39 24h5M10 10l3.5 3.5M34.5 34.5L38 38M38 10l-3.5 3.5M13.5 34.5L10 38"/></g></svg>',
+ water:'<svg viewBox="0 0 48 48"><path d="M24 6c7 10 11 15 11 21a11 11 0 11-22 0c0-6 4-11 11-21z" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+ chalice:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10h20c0 8-4 13-10 13S14 18 14 10z"/><path d="M24 23v11"/><path d="M16 38h16"/><path d="M20 34h8"/></g></svg>',
+ cross:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"><path d="M24 6v36"/><path d="M14 17h20"/></g></svg>',
+ crown:'<svg viewBox="0 0 48 48"><g fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"><path d="M8 34l-2-16 10 7 8-13 8 13 10-7-2 16z"/><path d="M8 34h32"/></g></svg>'
+};
+var MOTIF_MAP={ gozosos:['lily','dove','star','flame','sun'], luminosos:['water','chalice','sun','flame','chalice'], dolorosos:['chalice','cross','crown','cross','cross'], gloriosos:['sun','sun','flame','crown','crown'] };
+var COLOR_MAP={ gozosos:['#b8863a','#5a8a6e','#c6922b','#a8742f','#c79a3a'], luminosos:['#3f73b0','#5a6fb0','#3f8fb0','#6a74c0','#3f73b0'], dolorosos:['#7a2f3f','#8c2a3a','#9a3b4a','#7d3b2f','#8c2a3a'], gloriosos:['#c79a3a','#b08a3a','#c18a3f','#b57fa0','#c7b06a'] };
+Object.keys(SETS).forEach(function(sk){ SETS[sk].items.forEach(function(m,d){ m.motif=MOTIF_MAP[sk][d]; m.color=COLOR_MAP[sk][d]; }); });
+var VINT=['Aumentai em nós a fé','Aumentai em nós a esperança','Aumentai em nós a caridade'];
+var ANGELUS={
+  pt:[['O Anjo do Senhor anunciou a Maria,','E ela concebeu do Espírito Santo.',true],
+      ['Eis aqui a serva do Senhor,','Faça-se em mim segundo a vossa palavra.',true],
+      ['E o Verbo divino se fez carne,','E habitou entre nós.',true],
+      ['Rogai por nós, santa Mãe de Deus,','Para que sejamos dignos das promessas de Cristo.',false]],
+  ptOremus:'Oremos: Derramai, ó Deus, a vossa graça em nossos corações, para que, tendo conhecido pela mensagem do Anjo a encarnação de Cristo, vosso Filho, cheguemos, por sua paixão e cruz, à glória da ressurreição. Pelo mesmo Cristo, Senhor nosso. Amém.',
+  la:[['Ángelus Dómini nuntiávit Maríæ,','Et concépit de Spíritu Sancto.',true],
+      ['Ecce ancílla Dómini,','Fiat mihi secúndum verbum tuum.',true],
+      ['Et Verbum caro factum est,','Et habitávit in nobis.',true],
+      ['Ora pro nobis, sancta Dei Génetrix,','Ut digni efficiámur promissiónibus Christi.',false]],
+  laOremus:'Orémus: Grátiam tuam, quǽsumus, Dómine, méntibus nostris infúnde; ut qui, Ángelo nuntiánte, Christi Fílii tui incarnatiónem cognóvimus, per passiónem eius et crucem, ad resurrectiónis glóriam perducámur. Per eúndem Christum Dóminum nostrum. Amen.'
 };
 var BY_DAY = ['gloriosos','gozosos','dolorosos','gloriosos','luminosos','dolorosos','gozosos'];
 var ORD = {pt:['1º','2º','3º','4º','5º'], la:['I','II','III','IV','V']};
@@ -171,7 +232,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, mode:'terco' };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, remTime:'20:10', pace:1.2, log:[], setsDone:{}, rosDone:false, mode:'terco' };
 
 function load(){
   try{
@@ -182,6 +243,11 @@ function load(){
     if(o.notif) S.notif = o.notif;
     if(o.voice) S.voice = o.voice;
     if(o.say) S.say = o.say;
+    if(o.remTime) S.remTime = o.remTime;
+    if(o.pace) S.pace = o.pace;
+    if(o.log) S.log = o.log;
+    if(o.setsDone) S.setsDone = o.setsDone;
+    if(o.rosDone) S.rosDone = o.rosDone;
     if(o.mode) S.mode = o.mode;
     if(o.day === todayKey && o.started && SETS[o.set]){
       S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
@@ -189,7 +255,7 @@ function load(){
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,notif:S.notif,voice:S.voice,say:S.say,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,notif:S.notif,voice:S.voice,say:S.say,remTime:S.remTime,pace:S.pace,log:S.log,setsDone:S.setsDone,rosDone:S.rosDone,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
@@ -197,6 +263,7 @@ function setsForRun(){ return S.mode==='rosario' ? ROSARIO : [S.set]; }
 function build(){
   var sets=setsForRun(), st=[];
   st.push({k:'sinal',phase:'Início'});
+  st.push({k:'veni',phase:'Início'});
   st.push({k:'credo',phase:'Início'});
   st.push({k:'pai',phase:'Início'});
   st.push({k:'ave',count:3,phase:'Início',note:{pt:'Três Ave-Marias: pela fé, pela esperança e pela caridade.',la:'Tres Ave Maria: pro fide, spe et caritate.'}});
@@ -209,7 +276,10 @@ function build(){
       st.push({k:'fatima',dec:d,myst:m,setKey:sk});
     });
   });
+  st.push({k:'gracas',phase:'Final'});
   st.push({k:'salve',phase:'Final'});
+  st.push({k:'anjo',phase:'Final'});
+  st.push({k:'defuntos',phase:'Final'});
   st.push({k:'sinal',phase:'Final',end:true});
   return st;
 }
@@ -225,9 +295,10 @@ var STEPS = build();
 var app = document.getElementById('app');
 
 function pair(obj, cls){
+  var la=obj.la||obj.pt;
   if(S.lang==='pt') return '<p class="prayer '+(cls||'')+'">'+obj.pt+'</p>';
-  if(S.lang==='la') return '<p class="prayer '+(cls||'')+'">'+obj.la+'</p>';
-  return '<p class="prayer">'+obj.la+'</p><p class="prayer pt2">'+obj.pt+'</p>';
+  if(S.lang==='la') return '<p class="prayer '+(cls||'')+'">'+la+'</p>';
+  return '<p class="prayer">'+la+'</p>'+(la!==obj.pt?'<p class="prayer pt2">'+obj.pt+'</p>':'');
 }
 function nm(obj){
   if(S.lang==='pt') return obj.pt;
@@ -246,11 +317,69 @@ function modeSeg(){
     return '<button data-mode="'+x[0]+'" aria-pressed="'+(S.mode===x[0])+'">'+x[1]+'</button>';
   }).join('')+'</div>';
 }
+function onColor(hex){ var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return (0.299*r+0.587*g+0.114*b)>150?'#2b2117':'#fff'; }
 function applyAccent(){
-  var s=SETS[currentSetKey()], r=document.documentElement.style;
-  r.setProperty('--accent', s.acc); r.setProperty('--on-accent', s.on);
+  var st=STEPS&&STEPS[S.i], c=(S.view==='pray'&&st&&st.myst&&st.myst.color)||SETS[currentSetKey()].acc, r=document.documentElement.style;
+  r.setProperty('--accent', c); r.setProperty('--on-accent', onColor(c));
 }
 
+function dayISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function recordCompletion(){
+  if(!S.log) S.log=[]; var k=dayISO(new Date());
+  if(S.log.indexOf(k)<0) S.log.push(k);
+  if(!S.setsDone) S.setsDone={};
+  if(S.mode==='rosario'){ S.rosDone=true; ROSARIO.forEach(function(sk){ S.setsDone[sk]=true; }); }
+  else { S.setsDone[S.set]=true; }
+}
+function streakInfo(){
+  var set={}; (S.log||[]).forEach(function(x){ set[x]=true; });
+  var cur=0, d=new Date();
+  if(!set[dayISO(d)]) d.setDate(d.getDate()-1);
+  while(set[dayISO(d)]){ cur++; d.setDate(d.getDate()-1); }
+  var dates=Object.keys(set).sort(), best=0, run=0, prev=null;
+  dates.forEach(function(x){ var dt=new Date(x+'T00:00:00'); if(prev&&(dt-prev)===86400000) run++; else run=1; if(run>best) best=run; prev=dt; });
+  return { cur:cur, best:best, total:dates.length, today:!!set[dayISO(new Date())] };
+}
+function achievements(){
+  var st=streakInfo(), sd=S.setsDone||{};
+  var allsets=['gozosos','luminosos','dolorosos','gloriosos'].every(function(k){ return sd[k]; });
+  return [
+    { nome:'Primeiro terço', desc:'Rezou o primeiro terço', on: st.total>=1 },
+    { nome:'3 dias seguidos', desc:'Sequência de 3 dias', on: st.best>=3 },
+    { nome:'Uma semana', desc:'Sequência de 7 dias', on: st.best>=7 },
+    { nome:'Um mês', desc:'Sequência de 30 dias', on: st.best>=30 },
+    { nome:'Dez terços', desc:'10 terços rezados', on: st.total>=10 },
+    { nome:'Cinquenta', desc:'50 terços rezados', on: st.total>=50 },
+    { nome:'Todos os mistérios', desc:'Rezou os quatro conjuntos', on: allsets },
+    { nome:'Rosário completo', desc:'Rezou o rosário inteiro', on: !!S.rosDone }
+  ];
+}
+function streakHome(){
+  var st=streakInfo(), ach=achievements(), got=ach.filter(function(a){ return a.on; }).length;
+  var set={}; (S.log||[]).forEach(function(x){ set[x]=true; });
+  var dots='';
+  for(var i=6;i>=0;i--){ var d=new Date(); d.setDate(d.getDate()-i); dots+='<i class="'+(set[dayISO(d)]?'on':'')+'"></i>'; }
+  var big = st.cur===1 ? '1 dia seguido' : st.cur+' dias seguidos';
+  var sub = st.total ? ('Recorde: '+st.best+' · Total: '+st.total) : 'Comece hoje a sua sequência';
+  var badges = ach.map(function(a){ return '<div class="badge'+(a.on?' got':'')+'">'+a.nome+'</div>'; }).join('');
+  return '<div class="streak">'+
+    '<div class="sline"><div class="snum">'+st.cur+'</div><div class="smeta"><p class="sbig">'+big+'</p><p class="ssub">'+sub+'</p></div></div>'+
+    '<div class="dots" aria-hidden="true">'+dots+'</div>'+
+    '<p class="eyebrow label" style="margin-top:12px">Conquistas ('+got+'/'+ach.length+')</p>'+
+    '<div class="badges">'+badges+'</div>'+
+  '</div>';
+}
+function angelusView(){
+  var la=(S.lang==='la'), A=la?ANGELUS.la:ANGELUS.pt, ave=la?PRAYERS.ave.la:PRAYERS.ave.pt, orem=la?ANGELUS.laOremus:ANGELUS.ptOremus;
+  var body='';
+  A.forEach(function(x){
+    body+='<p class="vr"><b>℣</b> '+x[0]+'<br><b>℟</b> '+x[1]+'</p>';
+    if(x[2]) body+='<p class="prayer" style="font-size:1.08rem">'+ave+'</p>';
+  });
+  body+='<p class="prayer">'+orem+'</p>';
+  app.innerHTML='<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><p class="eyebrow" style="flex:1;align-self:center">'+(la?'Ángelus Dómini':'Angelus')+'</p></div>'+
+    '<div class="scroll">'+body+'</div>';
+}
 function home(){
   var ros=(S.mode==='rosario');
   var date = now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
@@ -283,21 +412,25 @@ function home(){
     '<h1 style="margin-top:8px">'+title+'</h1>'+
     '<div class="rule"></div>'+
     '<ol class="list" style="margin-top:0">'+list+'</ol>'+
+    streakHome()+
     '<p class="eyebrow label">Rezar</p>'+modeSeg()+
     chipsBlock+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
-    '<p class="eyebrow label">Lembrete das 20:10</p>'+
+    '<p class="eyebrow label">Lembrete diário</p>'+
+    '<div class="timerow"><span>Horário do lembrete</span><input type="time" id="remTime" value="'+S.remTime+'"></div>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
     '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
     '<p class="note" style="margin-top:10px">O calendário avisa todo dia, mesmo com o app fechado. O aviso do app só toca com ele aberto.</p>'+
+    '<p class="eyebrow label">Outras orações</p>'+
+    '<div class="stack"><button class="btn ghost" data-act="angelus">Rezar o Angelus</button></div>'+
     '</div>'+
     '<div class="stack">'+cont+'</div>';
 }
 
 function pray(){
   var st=STEPS[S.i], p=PRAYERS[st.k];
-  var decDone = typeof st.dec==='number' ? st.dec : (S.i<5?-1:5);
+  var decDone = typeof st.dec==='number' ? st.dec : (st.phase==='Final'?5:-1);
   var seg='';
   for(var d=0; d<5; d++){
     var cls = d<decDone ? 'done' : '';
@@ -318,10 +451,13 @@ function pray(){
 
   var head='';
   if(typeof st.dec==='number'){
-    head = '<h2 class="myst">'+nm(st.myst)+'</h2>';
+    var emb=(st.announce && st.myst.motif && MOTIFS[st.myst.motif]) ? '<div class="emblem">'+MOTIFS[st.myst.motif]+'</div>' : '';
+    head = emb+'<h2 class="myst">'+nm(st.myst)+'</h2>';
+    if(st.announce && st.myst.med){ head += '<p class="med"><span class="ref">'+st.myst.ref+'</span> '+st.myst.med+'</p><p class="fruit">Fruto do mistério: '+st.myst.fruto+'</p>'; }
   }
   var title = '<p class="eyebrow" style="margin-bottom:8px">'+(S.lang==='pt'?p.name.pt:(S.lang==='la'?p.name.la:p.name.la+' · '+p.name.pt))+'</p>';
   var note = st.note ? '<p class="note">'+(S.lang==='la'?st.note.la:(S.lang==='both'?st.note.pt:st.note.pt))+'</p>' : '';
+  if(st.phase==='Início' && st.k==='ave' && st.count===3){ note='<p class="note">'+(S.c+1)+'ª Ave-Maria · '+VINT[S.c]+'</p>'; }
   var count='', btn;
   if(st.count){
     count='<div class="count">'+S.c+' / '+st.count+'</div>';
@@ -337,6 +473,9 @@ function pray(){
     '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
       ((S.lang==='pt'&&('speechSynthesis' in window))?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">Ouvir</button>':'')+
       '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
+      '<button class="mini" data-act="faster" aria-label="Mais rápido">–</button>'+
+      '<span class="pace" aria-label="Ritmo">'+S.pace.toFixed(1)+'×</span>'+
+      '<button class="mini" data-act="slower" aria-label="Mais devagar">+</button>'+
     '</div></div>'+
     '<div class="scroll">'+
       head+title+note+pair(p)+
@@ -383,14 +522,14 @@ function buildRosary(){
 }
 function curBead(){
   var st=STEPS[S.i], k=st.k, d=st.dec, has=(typeof d==='number');
-  if(k==='credo'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
+  if(k==='credo'||k==='veni'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
   if(k==='pai'&&!has) return {id:'A1',p:1};
   if(k==='ave'&&!has) return {id:'t'+S.c,p:2+S.c};
   if(k==='gloria'&&!has) return {id:'B',p:5};
   if(k==='pai') return d===0 ? {id:'medal',p:6} : {id:'L'+(d-1),p:7+(d-1)*11+10};
   if(k==='ave') return {id:'d'+d+'_'+S.c,p:7+d*11+S.c};
   if(k==='gloria'||k==='fatima') return {id:'L'+d,p:7+d*11+10};
-  if(k==='salve') return {id:'medal',p:62};
+  if(k==='salve'||k==='gracas'||k==='anjo'||k==='defuntos') return {id:'medal',p:62};
   return {id:'cross',p:63};
 }
 function updateRosary(){
@@ -425,21 +564,22 @@ function done(){
   var label=isRos?(S.lang==='la'?'Rosárium':'Rosário completo'):nm(SETS[S.set].name).replace(/<[^>]+>/g,' ');
   app.innerHTML =
     '<div class="done-screen"><p class="eyebrow">'+label+'</p><p class="amen">Amém.</p>'+
-    '<div class="rule"></div><p class="prayer">'+(isRos?'Rosário concluído.':'Terço concluído.')+' Laudetur Iesus Christus.</p></div>'+
+    '<div class="rule"></div><p class="prayer">'+(isRos?'Rosário concluído.':'Terço concluído.')+' Laudetur Iesus Christus.</p>'+
+    '<p class="ssub" style="text-align:center;margin-top:10px">Sequência: '+streakInfo().cur+' '+(streakInfo().cur===1?'dia':'dias')+'</p></div>'+
     '<div class="stack"><button class="btn" data-act="finish">Voltar ao início</button></div>';
 }
 
 var autoTimer=0;
 function delayFor(){
   var st=STEPS[S.i], p=PRAYERS[st.k], w=(S.lang==='pt'?p.pt:p.la).split(/\s+/).length;
-  return 1500+w*360+(st.announce?2500:0);
+  return Math.round((1500+w*360+(st.announce?2500:0))*S.pace);
 }
 var speakTok=0;
 var ORDPT=['Primeiro','Segundo','Terceiro','Quarto','Quinto'];
 function stepSpeech(){
   var st=STEPS[S.i], p=PRAYERS[st.k], pt=(S.lang==='pt'), txt='';
   if(st.firstOfSet && S.mode==='rosario'){ txt+= (pt?SETS[st.setKey].name.pt:SETS[st.setKey].name.la)+'. '; }
-  if(st.announce) txt+= pt ? ORDPT[st.dec]+' mistério. '+st.myst.pt+'. ' : st.myst.la+'. ';
+  if(st.announce){ txt+= pt ? ORDPT[st.dec]+' mistério. '+st.myst.pt+'. ' : st.myst.la+'. '; if(st.myst.med) txt+= st.myst.med+' '; }
   txt+= pt ? p.pt : p.la;
   return pt ? txt : latinForSpeech(txt);
 }
@@ -487,7 +627,7 @@ function narrate(text, tok, done){
 function schedule(){
   clearTimeout(autoTimer);
   if(S.view!=='pray') return;
-  var tok=speakTok, gap=350;
+  var tok=speakTok, gap=Math.round(350*S.pace);
   if(S.say && S.lang==='pt' && window.speechSynthesis){
     autoTimer=setTimeout(function(){
       narrate(stepSpeech(), tok, function(ok){
@@ -504,7 +644,7 @@ function render(){
   speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
   applyAccent();
-  if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else done();
+  if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else if(S.view==='angelus') angelusView(); else done();
 }
 
 /* ---------- Ações ---------- */
@@ -514,7 +654,7 @@ function next(){
     S.c++;
     if(S.c>=st.count){ S.c=0; S.i++; }
   } else {
-    if(S.i>=STEPS.length-1){ S.view='done'; S.started=false; S.i=0; S.c=0; save(); render(); return; }
+    if(S.i>=STEPS.length-1){ recordCompletion(); S.view='done'; S.started=false; S.i=0; S.c=0; save(); render(); return; }
     S.i++;
   }
   save(); render();
@@ -551,10 +691,17 @@ app.addEventListener('click', function(e){
   else if(a==='ics') downloadIcs();
   else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
+  else if(a==='slower'){ S.pace=Math.min(2.5, Math.round((S.pace+0.3)*10)/10); save(); render(); }
+  else if(a==='faster'){ S.pace=Math.max(0.6, Math.round((S.pace-0.3)*10)/10); save(); render(); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
   else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
+  else if(a==='angelus'){ S.view='angelus'; render(); }
   else if(a==='home'){ S.view='home'; render(); }
   else if(a==='finish'){ S.view='home'; S.set=todaySet; STEPS=build(S.set); render(); }
+});
+app.addEventListener('change', function(e){
+  var t=e.target;
+  if(t && t.id==='remTime' && t.value){ S.remTime=t.value; save(); render(); }
 });
 document.addEventListener('keydown', function(e){
   if(S.view!=='pray') return;
@@ -588,15 +735,18 @@ function pad2(n){ return String(n).padStart(2,'0'); }
 function icsText(){
   var d=new Date(), ymd=d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate());
   var stamp=d.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  var hm=(S.remTime||'20:10').split(':'), H=+hm[0]||0, M=+hm[1]||0;
+  var endM=(H*60+M+20)%1440;
+  var start=pad2(H)+pad2(M)+'00', end=pad2(Math.floor(endM/60))+pad2(endM%60)+'00';
   var msg='Boa noite\\, noia! Hora do terço';
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//terco-do-dia//PT','CALSCALE:GREGORIAN','BEGIN:VEVENT',
-    'UID:terco-diario@terco-do-dia','DTSTAMP:'+stamp,'DTSTART:'+ymd+'T201000','DTEND:'+ymd+'T203000','RRULE:FREQ=DAILY',
+    'UID:terco-diario@terco-do-dia','DTSTAMP:'+stamp,'DTSTART:'+ymd+'T'+start,'DTEND:'+ymd+'T'+end,'RRULE:FREQ=DAILY',
     'SUMMARY:'+msg,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+msg,'TRIGGER:PT0S','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
 }
 function downloadIcs(){
   try{
     var url=URL.createObjectURL(new Blob([icsText()],{type:'text/calendar;charset=utf-8'}));
-    var a=document.createElement('a'); a.href=url; a.download='terco-20h10.ics';
+    var a=document.createElement('a'); a.href=url; a.download='terco-'+(S.remTime||'20:10').replace(':','h')+'.ics';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); },4000);
   }catch(e){}
@@ -607,7 +757,7 @@ function notifLabel(){
   return (S.notif&&Notification.permission==='granted') ? 'Aviso com o app aberto: ligado' : 'Ativar aviso com o app aberto';
 }
 function fire(test){
-  var opts={body:test?'Aviso ligado. Toca todo dia às 20:10.':REM_BODY, tag:'terco', icon:'icon-192.png'};
+  var opts={body:test?('Aviso ligado. Toca todo dia às '+S.remTime+'.'):REM_BODY, tag:'terco', icon:'icon-192.png'};
   try{
     if(navigator.serviceWorker && navigator.serviceWorker.getRegistration){
       navigator.serviceWorker.getRegistration().then(function(r){
@@ -625,7 +775,8 @@ var lastFired='';
 setInterval(function(){
   if(!S.notif||!('Notification' in window)||Notification.permission!=='granted') return;
   var n=new Date(), k=n.getFullYear()+'-'+n.getMonth()+'-'+n.getDate();
-  if(n.getHours()===20&&n.getMinutes()===10&&lastFired!==k){ lastFired=k; fire(false); }
+  var hm=(S.remTime||'20:10').split(':');
+  if(n.getHours()===(+hm[0])&&n.getMinutes()===(+hm[1])&&lastFired!==k){ lastFired=k; fire(false); }
 },15000);
 try{ if('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(e){}
 

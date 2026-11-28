@@ -59,7 +59,7 @@ test('build terço: 5 início + 20 de dezenas + 2 final; 5 dezenas e 5 mistério
   const w = freshWindow();
   w.S.mode = 'terco'; w.S.set = 'dolorosos';
   const st = w.build();
-  assert.strictEqual(st.length, 5 + 20 + 2);
+  assert.strictEqual(st.length, 6 + 20 + 5);
   const dezenas = st.filter(x => x.k === 'ave' && x.count === 10);
   assert.strictEqual(dezenas.length, 5);
   const misterios = st.filter(x => x.announce);
@@ -73,7 +73,9 @@ test('build rosário: 4 conjuntos => 20 dezenas, 20 mistérios, 203 Ave-Marias',
   const w = freshWindow();
   w.S.mode = 'rosario';
   const st = w.build();
-  assert.strictEqual(st.length, 5 + 4 * 20 + 2);
+  assert.strictEqual(st.length, 6 + 4 * 20 + 5);
+  assert.ok(st.some(x => x.k === 'veni'), 'tem oferecimento inicial');
+  assert.ok(st.some(x => x.k === 'gracas'), 'tem Infinitas graças');
   const dezenas = st.filter(x => x.k === 'ave' && x.count === 10);
   assert.strictEqual(dezenas.length, 20);
   const misterios = st.filter(x => x.announce);
@@ -98,4 +100,39 @@ test('icsText: evento diário às 20:10 com vírgula escapada', () => {
   assert.match(ics, /RRULE:FREQ=DAILY/);
   assert.match(ics, /Boa noite\\, noia/);
   assert.match(ics, /BEGIN:VALARM/);
+});
+
+test('icsText respeita o horário escolhido', () => {
+  const w = freshWindow();
+  w.S.remTime = '06:30';
+  const ics = w.icsText();
+  assert.match(ics, /DTSTART:\d{8}T063000/);
+  assert.match(ics, /DTEND:\d{8}T065000/);
+});
+
+test('delayFor escala com o ritmo (pace)', () => {
+  const w = freshWindow();
+  w.S.mode = 'terco'; w.S.set = 'gozosos'; w.STEPS = w.build(); w.S.i = 0;
+  w.S.pace = 1; const base = w.delayFor();
+  w.S.pace = 2; assert.strictEqual(w.delayFor(), base * 2);
+});
+
+test('streak conta dias seguidos, recorde e total', () => {
+  const w = freshWindow();
+  const iso = x => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  const hoje = new Date(), ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
+  w.S.log = [iso(ontem), iso(hoje)];
+  const st = w.streakInfo();
+  assert.strictEqual(st.total, 2);
+  assert.strictEqual(st.cur, 2);
+  assert.strictEqual(st.best, 2);
+});
+
+test('achievements: primeiro terço destrava com pelo menos uma reza', () => {
+  const w = freshWindow();
+  const iso = x => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  w.S.log = [];
+  assert.strictEqual(w.achievements().find(a => a.nome === 'Primeiro terço').on, false);
+  w.S.log = [iso(new Date())];
+  assert.strictEqual(w.achievements().find(a => a.nome === 'Primeiro terço').on, true);
 });
