@@ -136,3 +136,19 @@ test('achievements: primeiro terço destrava com pelo menos uma reza', () => {
   w.S.log = [iso(new Date())];
   assert.strictEqual(w.achievements().find(a => a.nome === 'Primeiro terço').on, true);
 });
+
+test('álbum: miniatura varia por santo (símbolo pela categoria, cor determinística)', () => {
+  const w = freshWindow();
+  assert.strictEqual(w.saintKind('11-27'), 'maria');
+  assert.strictEqual(w.saintKind('12-25'), 'cruz');
+  assert.strictEqual(w.saintKind('07-25'), 'chaves');
+  assert.strictEqual(w.saintKind('09-29'), 'asas');
+  assert.strictEqual(w.saintKind('01-20'), 'palma');
+  const keys = Object.keys(w.SANTOS);
+  const kinds = new Set(keys.map((k) => w.saintKind(k)));
+  assert.ok(kinds.size >= 12, 'esperava variedade de símbolos, veio ' + kinds.size);
+  kinds.forEach((k) => assert.ok(w.SAINT_SYM[k], 'símbolo sem desenho: ' + k));
+  assert.ok(new Set(keys.map((k) => w.saintColor(k, w.saintKind(k)))).size >= 6);
+  assert.strictEqual(w.saintThumb('06-13'), w.saintThumb('06-13'));
+  assert.notStrictEqual(w.saintThumb('06-13'), w.saintThumb('12-25'));
+});
