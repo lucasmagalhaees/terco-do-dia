@@ -59,7 +59,7 @@ test('build terço: 5 início + 20 de dezenas + 2 final; 5 dezenas e 5 mistério
   const w = freshWindow();
   w.S.mode = 'terco'; w.S.set = 'dolorosos';
   const st = w.build();
-  assert.strictEqual(st.length, 5 + 20 + 5);
+  assert.strictEqual(st.length, 7 + 20 + 5);
   const dezenas = st.filter(x => x.k === 'ave' && x.count === 10);
   assert.strictEqual(dezenas.length, 5);
   const misterios = st.filter(x => x.announce);
@@ -73,7 +73,7 @@ test('build rosário: 4 conjuntos => 20 dezenas, 20 mistérios, 203 Ave-Marias',
   const w = freshWindow();
   w.S.mode = 'rosario';
   const st = w.build();
-  assert.strictEqual(st.length, 5 + 4 * 20 + 5);
+  assert.strictEqual(st.length, 7 + 4 * 20 + 5);
   assert.ok(st.some(x => x.k === 'pelosinal'), 'tem a intro Pelo sinal da Santa Cruz');
   assert.ok(st.some(x => x.k === 'gracas'), 'tem Infinitas graças');
   const dezenas = st.filter(x => x.k === 'ave' && x.count === 10);

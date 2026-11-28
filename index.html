@@ -118,6 +118,10 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .sbig{margin:0;font-weight:600}
 .ssub{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
 .sicon{font-size:2.1rem;line-height:1;align-self:center}
+.arow{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.arow.locked{opacity:.38}
+.adate{font-family:var(--display);font-size:.78rem;color:var(--accent);min-width:3.4em;font-variant-numeric:tabular-nums}
+.aname{font-size:1rem}
 .santo{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;margin:16px 0 2px}
 .sname{margin:2px 0 0;font-family:var(--display);font-size:1.05rem;color:var(--ink)}
 .tiers{display:flex;gap:8px;margin:12px 0 2px}
@@ -148,8 +152,11 @@ var PRAYERS = {
     pt:'Em nome do Pai, e do Filho, e do Espírito Santo. Amém.',
     la:'In nómine Patris, et Fílii, et Spíritus Sancti. Amen.' },
   pelosinal:{ name:{pt:'Pelo sinal da Santa Cruz',la:'Per signum Crucis'},
-    pt:'Pelo sinal da Santa Cruz, livrai-nos, Deus, Nosso Senhor, dos nossos inimigos. Em nome do Pai, e do Filho, e do Espírito Santo. Amém.',
+    pt:'Pelo sinal da Santa Cruz, livrai-nos, Deus Nosso Senhor, dos nossos inimigos. Em nome do Pai, e do Filho e do Espírito Santo. Amém.',
     la:'Per signum Crucis de inimícis nostris líbera nos, Deus noster. In nómine Patris, et Fílii, et Spíritus Sancti. Amen.' },
+  oferecimento:{ name:{pt:'Oferecimento',la:'Oblatio'},
+    pt:'Divino Jesus, nós Vos oferecemos este terço que vamos rezar, meditando nos mistérios da nossa Redenção. Concedei-nos, por intercessão da Virgem Maria, a quem nos dirigimos, Mãe de Deus e nossa Mãe, as virtudes que nos são necessárias para bem rezá-lo e a graça de ganharmos as indulgências desta santa devoção. Oferecemos particularmente, em desagravo dos pecados cometidos contra o Santíssimo Coração de Jesus e Imaculado Coração de Maria, pela paz do mundo, pela conversão dos pecadores, pelas almas do Purgatório, pela Fé que anima a vossa Igreja, pelas intenções do Santo Padre, pelo aumento e santificação do Clero, pela santificação das famílias, pelos doentes, pelos agonizantes, pelo Brasil, por todos aqueles que são oprimidos nos regimes ditatoriais de seus países, e por todas as nossas intenções particulares.',
+    la:'' },
   credo:{ name:{pt:'Creio em Deus Pai',la:'Credo'},
     pt:'Creio em Deus Pai todo-poderoso, criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor, que foi concebido pelo poder do Espírito Santo, nasceu da Virgem Maria, padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus, está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo, na santa Igreja Católica, na comunhão dos santos, na remissão dos pecados, na ressurreição da carne, na vida eterna. Amém.',
     la:'Credo in Deum Patrem omnipoténtem, Creatórem cæli et terræ. Et in Iesum Christum, Fílium eius unicum, Dóminum nostrum, qui conceptus est de Spíritu Sancto, natus ex María Vírgine, passus sub Póntio Piláto, crucifíxus, mórtuus, et sepúltus, descéndit ad ínferos; tértia die resurréxit a mórtuis; ascéndit ad cælos, sedet ad déxteram Dei Patris omnipoténtis; inde ventúrus est iudicáre vivos et mórtuos. Credo in Spíritum Sanctum, sanctam Ecclésiam cathólicam, sanctórum communiónem, remissiónem peccatórum, carnis resurrectiónem, vitam ætérnam. Amen.' },
@@ -163,7 +170,7 @@ var PRAYERS = {
     pt:'Glória ao Pai, e ao Filho, e ao Espírito Santo. Como era no princípio, agora e sempre. Amém.',
     la:'Glória Patri, et Fílio, et Spirítui Sancto. Sicut erat in princípio, et nunc, et semper, et in sǽcula sæculórum. Amen.' },
   fatima:{ name:{pt:'Ó meu Jesus',la:'O mi Iesu'},
-    pt:'Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o céu e socorrei principalmente as que mais precisarem.',
+    pt:'Ó meu Bom Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o Céu e socorrei principalmente aquelas que mais precisarem da Vossa infinita misericórdia.',
     la:'O mi Iesu, dimítte nobis débita nostra, salva nos ab igne inférni, perdúc in cælum omnes ánimas, præsértim eas, quæ misericórdiæ tuæ máxime indigent.' },
   anjo:{ name:{pt:'Oração do Anjo (Fátima)',la:'Oratio Angeli'},
     pt:'Meu Deus, eu creio, adoro, espero e amo-Vos. Peço-Vos perdão para os que não creem, não adoram, não esperam e não Vos amam.',
@@ -222,7 +229,7 @@ var MOTIFS={
 var MOTIF_MAP={ gozosos:['lily','dove','star','flame','sun'], luminosos:['water','chalice','sun','flame','chalice'], dolorosos:['chalice','cross','crown','cross','cross'], gloriosos:['sun','sun','flame','crown','crown'] };
 var COLOR_MAP={ gozosos:['#b8863a','#5a8a6e','#c6922b','#a8742f','#c79a3a'], luminosos:['#3f73b0','#5a6fb0','#3f8fb0','#6a74c0','#3f73b0'], dolorosos:['#7a2f3f','#8c2a3a','#9a3b4a','#7d3b2f','#8c2a3a'], gloriosos:['#c79a3a','#b08a3a','#c18a3f','#b57fa0','#c7b06a'] };
 Object.keys(SETS).forEach(function(sk){ SETS[sk].items.forEach(function(m,d){ m.motif=MOTIF_MAP[sk][d]; m.color=COLOR_MAP[sk][d]; }); });
-var VINT=['Pela virtude da fé','Pela virtude da esperança','Pela virtude da caridade'];
+var VINT=['Em honra a Deus Pai que nos criou','Em honra a Deus Filho que nos remiu','Em honra ao Espírito Santo que nos santifica'];
 var ANGELUS={
   pt:[['O Anjo do Senhor anunciou a Maria,','E ela concebeu do Espírito Santo.',true],
       ['Eis aqui a serva do Senhor,','Faça-se em mim segundo a vossa palavra.',true],
@@ -243,7 +250,7 @@ var KEY = 'terco-do-dia-v1';
 var now = new Date();
 var todayKey = now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
 var todaySet = BY_DAY[now.getDay()];
-var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, remTime:'20:10', pace:1.2, log:[], setsDone:{}, rosDone:false, mode:'terco' };
+var S = { lang:'pt', set:todaySet, view:'home', i:0, c:0, day:todayKey, started:false, auto:false, notif:false, voice:'f', say:false, remTime:'20:10', pace:1.2, log:[], setsDone:{}, rosDone:false, santos:{}, mode:'terco' };
 
 function load(){
   try{
@@ -259,6 +266,7 @@ function load(){
     if(o.log) S.log = o.log;
     if(o.setsDone) S.setsDone = o.setsDone;
     if(o.rosDone) S.rosDone = o.rosDone;
+    if(o.santos) S.santos = o.santos;
     if(o.mode) S.mode = o.mode;
     if(o.day === todayKey && o.started && SETS[o.set]){
       S.set=o.set; S.i=o.i||0; S.c=o.c||0; S.started=true;
@@ -266,7 +274,7 @@ function load(){
   }catch(e){}
 }
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,notif:S.notif,voice:S.voice,say:S.say,remTime:S.remTime,pace:S.pace,log:S.log,setsDone:S.setsDone,rosDone:S.rosDone,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:S.lang,notif:S.notif,voice:S.voice,say:S.say,remTime:S.remTime,pace:S.pace,log:S.log,setsDone:S.setsDone,rosDone:S.rosDone,santos:S.santos,mode:S.mode,set:S.set,i:S.i,c:S.c,day:S.day,started:S.started})); }catch(e){}
 }
 
 var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
@@ -274,10 +282,12 @@ function setsForRun(){ return S.mode==='rosario' ? ROSARIO : [S.set]; }
 function build(){
   var sets=setsForRun(), st=[];
   st.push({k:'pelosinal',phase:'Início'});
+  st.push({k:'oferecimento',phase:'Início'});
   st.push({k:'credo',phase:'Início'});
   st.push({k:'pai',phase:'Início'});
   st.push({k:'ave',count:3,phase:'Início',note:{pt:'Três Ave-Marias: pela fé, pela esperança e pela caridade.',la:'Tres Ave Maria: pro fide, spe et caritate.'}});
   st.push({k:'gloria',phase:'Início'});
+  st.push({k:'fatima',phase:'Início'});
   sets.forEach(function(sk){
     SETS[sk].items.forEach(function(m,d){
       st.push({k:'pai',dec:d,myst:m,setKey:sk,announce:true,firstOfSet:d===0});
@@ -340,6 +350,7 @@ function recordCompletion(){
   if(!S.setsDone) S.setsDone={};
   if(S.mode==='rosario'){ S.rosDone=true; ROSARIO.forEach(function(sk){ S.setsDone[sk]=true; }); }
   else { S.setsDone[S.set]=true; }
+  if(!S.santos) S.santos={}; var sdk=santoKey(); if(SANTOS[sdk]) S.santos[sdk]=SANTOS[sdk];
 }
 function streakInfo(){
   var set={}; (S.log||[]).forEach(function(x){ set[x]=true; });
@@ -386,10 +397,33 @@ var SANTOS={
  '11-01':'Todos os Santos','11-02':'Finados — Fiéis Defuntos','11-04':'São Carlos Borromeu','11-09':'Dedicação da Basílica de Latrão','11-11':'São Martinho de Tours','11-21':'Apresentação de Nossa Senhora','11-22':'Santa Cecília','11-25':'Santa Catarina de Alexandria','11-30':'Santo André, apóstolo',
  '12-03':'São Francisco Xavier','12-06':'São Nicolau','12-07':'Santo Ambrósio','12-08':'Imaculada Conceição','12-12':'Nossa Senhora de Guadalupe','12-13':'Santa Luzia','12-14':'São João da Cruz','12-25':'Natal do Senhor','12-26':'Santo Estêvão','12-27':'São João, apóstolo e evangelista','12-28':'Santos Inocentes'
 };
+Object.assign(SANTOS,{
+ '01-03':'Santíssimo Nome de Jesus','01-07':'São Raimundo de Peñafort','01-13':'Santo Hilário','01-20':'São Sebastião','01-26':'São Timóteo e São Tito','01-27':'Santa Ângela de Merici',
+ '02-06':'São Paulo Miki e companheiros','02-08':'Santa Josefina Bakhita','02-17':'Sete Santos Fundadores dos Servitas','02-21':'São Pedro Damião','02-23':'São Policarpo',
+ '03-04':'São Casimiro','03-07':'Santas Perpétua e Felicidade','03-08':'São João de Deus','03-09':'Santa Francisca Romana','03-18':'São Cirilo de Jerusalém','03-23':'São Toríbio de Mogrovejo',
+ '04-02':'São Francisco de Paula','04-04':'Santo Isidoro de Sevilha','04-05':'São Vicente Ferrer','04-07':'São João Batista de La Salle','04-11':'São Estanislau','04-21':'Santo Anselmo','04-24':'São Fidélis de Sigmaringen','04-28':'São Luís Maria Grignion de Montfort','04-30':'São Pio V',
+ '05-02':'Santo Atanásio','05-10':'São João de Ávila','05-14':'São Matias, apóstolo','05-20':'São Bernardino de Sena','05-22':'Santa Rita de Cássia','05-25':'São Beda, o Venerável',
+ '06-02':'Santos Marcelino e Pedro','06-03':'São Carlos Lwanga e companheiros','06-05':'São Bonifácio','06-06':'São Norberto','06-09':'Santo Efrém','06-11':'São Barnabé, apóstolo','06-19':'São Romualdo','06-22':'São João Fisher e São Tomás More','06-27':'São Cirilo de Alexandria',
+ '07-04':'Santa Isabel de Portugal','07-05':'Santo Antônio Maria Zaccaria','07-06':'Santa Maria Goretti','07-13':'Santo Henrique','07-14':'São Camilo de Léllis','07-15':'São Boaventura','07-20':'São Apolinário','07-21':'São Lourenço de Brindisi','07-23':'Santa Brígida','07-24':'São Charbel Makhluf',
+ '08-02':'São Pedro Julião Eymard','08-05':'Dedicação da Basílica de Santa Maria Maior','08-07':'São Caetano','08-13':'Santos Ponciano e Hipólito','08-16':'Santo Estêvão da Hungria','08-19':'São João Eudes','08-21':'São Pio X','08-23':'Santa Rosa de Lima','08-25':'São José de Calasanz','08-29':'Martírio de São João Batista',
+ '09-05':'Santa Teresa de Calcutá','09-09':'São Pedro Claver','09-12':'Santíssimo Nome de Maria','09-16':'Santos Cornélio e Cipriano','09-17':'São Roberto Belarmino','09-19':'São Januário','09-20':'Santos André Kim e companheiros','09-26':'Santos Cosme e Damião','09-28':'São Venceslau',
+ '10-05':'Santa Faustina Kowalska','10-06':'São Bruno','10-09':'São João Leonardi','10-11':'São João XXIII','10-14':'São Calisto I','10-17':'Santo Inácio de Antioquia','10-19':'São Paulo da Cruz','10-23':'São João de Capistrano','10-24':'Santo Antônio Maria Claret',
+ '11-03':'São Martinho de Porres','11-10':'São Leão Magno','11-12':'São Josafá','11-15':'Santo Alberto Magno','11-16':'Santa Gertrudes','11-17':'Santa Isabel da Hungria','11-18':'Dedicação das Basílicas de São Pedro e São Paulo','11-23':'São Clemente I','11-24':'Santo André Dung-Lac e companheiros','11-27':'Nossa Senhora das Graças (Medalha Milagrosa)',
+ '12-04':'São João Damasceno','12-11':'São Dâmaso I','12-21':'São Pedro Canísio','12-23':'São João de Kety','12-29':'São Tomás Becket','12-31':'São Silvestre I'
+});
 function santoKey(){ var d=new Date(); return pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
 function santoHome(){
-  var nome=SANTOS[santoKey()];
-  return '<div class="santo"><p class="eyebrow">Santo do dia</p><p class="sname">'+(nome||'Santos e santas do dia')+'</p></div>';
+  var nome=SANTOS[santoKey()], total=Object.keys(SANTOS).length, got=Object.keys(S.santos||{}).length;
+  return '<div class="santo"><p class="eyebrow">Santo do dia</p><p class="sname">'+(nome||'Santos e santas do dia')+'</p>'+
+    '<button class="mini" data-act="album" style="margin-top:10px">Álbum de santos · '+got+'/'+total+'</button></div>';
+}
+function albumView(){
+  var keys=Object.keys(SANTOS).sort(), got=S.santos||{}, n=Object.keys(got).length;
+  var rows=keys.map(function(k){
+    return '<div class="arow'+(got[k]?'':' locked')+'"><span class="adate">'+k.slice(3,5)+'/'+k.slice(0,2)+'</span><span class="aname">'+SANTOS[k]+'</span></div>';
+  }).join('');
+  app.innerHTML='<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><p class="eyebrow" style="flex:1;align-self:center">Álbum de santos · '+n+'/'+keys.length+'</p></div>'+
+    '<div class="scroll"><p class="note" style="margin:0 0 12px">Reze o terço no dia do santo para desbloqueá-lo. Os bloqueados ficam opacos.</p>'+rows+'</div>';
 }
 function exportData(){
   try{
@@ -517,7 +551,7 @@ function pray(){
   }
   var title = '<p class="eyebrow" style="margin-bottom:8px">'+(S.lang==='pt'?p.name.pt:(S.lang==='la'?p.name.la:p.name.la+' · '+p.name.pt))+'</p>';
   var note = st.note ? '<p class="note">'+(S.lang==='la'?st.note.la:(S.lang==='both'?st.note.pt:st.note.pt))+'</p>' : '';
-  if(st.phase==='Início' && st.k==='ave' && st.count===3){ note='<p class="note">'+(S.c+1)+'ª Ave-Maria · '+VINT[S.c]+'</p>'; }
+  if(st.phase==='Início' && st.k==='ave' && st.count===3){ note='<p class="note">'+VINT[S.c]+'…</p>'; }
   var count='', btn;
   if(st.count){
     count='<div class="count">'+S.c+' / '+st.count+'</div>';
@@ -582,10 +616,11 @@ function buildRosary(){
 }
 function curBead(){
   var st=STEPS[S.i], k=st.k, d=st.dec, has=(typeof d==='number');
-  if(k==='credo'||k==='pelosinal'||k==='veni'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
+  if(k==='credo'||k==='pelosinal'||k==='oferecimento'||k==='veni'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
   if(k==='pai'&&!has) return {id:'A1',p:1};
   if(k==='ave'&&!has) return {id:'t'+S.c,p:2+S.c};
   if(k==='gloria'&&!has) return {id:'B',p:5};
+  if(k==='fatima'&&!has) return {id:'B',p:5};
   if(k==='pai') return d===0 ? {id:'medal',p:6} : {id:'L'+(d-1),p:7+(d-1)*11+10};
   if(k==='ave') return {id:'d'+d+'_'+S.c,p:7+d*11+S.c};
   if(k==='gloria'||k==='fatima') return {id:'L'+d,p:7+d*11+10};
@@ -625,6 +660,7 @@ function done(){
   app.innerHTML =
     '<div class="done-screen"><p class="eyebrow">'+label+'</p><p class="amen">Amém.</p>'+
     '<div class="rule"></div><p class="prayer">'+(isRos?'Rosário concluído.':'Terço concluído.')+' Laudetur Iesus Christus.</p>'+
+    (SANTOS[santoKey()]?'<p class="ssub" style="text-align:center;margin-top:8px">Santo desbloqueado: '+SANTOS[santoKey()]+'</p>':'')+
     '<p class="ssub" style="text-align:center;margin-top:10px">Sequência: '+streakInfo().cur+' '+(streakInfo().cur===1?'dia':'dias')+'</p></div>'+
     '<div class="stack"><button class="btn" data-act="finish">Voltar ao início</button></div>';
 }
@@ -704,7 +740,7 @@ function render(){
   speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
   applyAccent();
-  if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else if(S.view==='angelus') angelusView(); else done();
+  if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else if(S.view==='angelus') angelusView(); else if(S.view==='album') albumView(); else done();
 }
 
 /* ---------- Ações ---------- */
@@ -756,6 +792,7 @@ app.addEventListener('click', function(e){
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
   else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
   else if(a==='angelus'){ S.view='angelus'; render(); }
+  else if(a==='album'){ S.view='album'; render(); }
   else if(a==='export') exportData();
   else if(a==='import'){ var f=document.getElementById('impFile'); if(f) f.click(); }
   else if(a==='home'){ S.view='home'; render(); }

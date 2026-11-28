@@ -27,4 +27,4 @@ npm run test:unit   # node:test + jsdom (funções puras: build, latim, chunks, 
 npm run test:e2e    # Playwright (usa o Google Chrome do sistema)
 npm test            # roda os dois
 ```
-
+- **Santo do dia** e **álbum de santos** (rezar o terço do dia desbloqueia o santo).
