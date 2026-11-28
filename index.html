@@ -81,7 +81,7 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .prog i{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
 .prog i.done{background:var(--accent)}
 .prog i.cur::after{content:"";position:absolute;inset:0;background:var(--accent);width:var(--p,0%)}
-.where{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 10px;margin:2px 0 4px}
+.where{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:2px 0 8px}
 .myst{margin:6px 0 14px}
 .myst .la{display:block;font-style:italic;font-weight:400;font-family:var(--body);font-size:.95rem;letter-spacing:0;color:var(--muted);margin-top:4px}
 .prayer{margin:0 0 .9em;font-size:clamp(1.22rem,4.8vw,1.42rem);line-height:1.55;max-width:34rem}
@@ -104,11 +104,24 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .ros .cur .bd{fill:var(--accent);stroke:var(--ink);stroke-width:1.6;transform:scale(1.3)}
 .ros .ring{fill:none;stroke:var(--accent);stroke-width:1.4;opacity:0;transform-box:fill-box;transform-origin:center}
 .ros .cur .ring{animation:pulse var(--pulse,1.9s) ease-out infinite}
-.where{align-items:center}
-.ctl{display:flex;gap:6px}
+/* player da reza */
+.player{display:flex;gap:8px;margin:0 0 8px}
+.pbtn{position:relative;overflow:hidden;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:0 12px;font-family:var(--display);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.pbtn svg{width:14px;height:14px;flex:0 0 auto;fill:currentColor}
+.pbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.pbtn .aprog{position:absolute;left:0;bottom:0;height:3px;width:var(--ap,0%);background:var(--on-accent);opacity:.55;transition:width .25s linear}
+.pbtn.tune{flex:0 0 46px;padding:0}
+.pbtn.tune svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.pbtn.tune[aria-expanded="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tunebox{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px;margin:0 0 10px}
+.tunebox[hidden]{display:none}
+.tunebox .seg{background:var(--bg)}
+.tunebox .seg button{min-height:40px;padding:8px 4px;font-size:.88rem}
+.setl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 6px}
+.seg+.setl{margin-top:12px}
+.setl small{font-size:.8rem;font-style:italic;color:var(--muted);text-align:right}
 .mini{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:.8rem;min-height:36px;white-space:nowrap}
 .mini[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.pace{align-self:center;font-size:.8rem;color:var(--muted);min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
 .med{margin:4px 0 8px;font-style:italic;color:var(--ink);font-size:1.18rem;line-height:1.55}
 .med .ref{font-style:normal;font-family:var(--display);font-size:.72rem;letter-spacing:.06em;color:var(--accent);margin-right:6px}
 .fruit{margin:0 0 6px;font-size:.82rem;color:var(--muted)}
@@ -367,6 +380,34 @@ function modeSeg(){
     return '<button data-mode="'+x[0]+'" aria-pressed="'+(S.mode===x[0])+'">'+x[1]+'</button>';
   }).join('')+'</div>';
 }
+/* Velocidade da voz (S.vrate, multiplicador da fala) e ritmo do automático
+   (S.pace, multiplicador das pausas: maior = mais lento). Valores antigos fora
+   dos presets continuam valendo; o botão mais próximo aparece marcado. */
+var VRATES=[[0.8,'0,8×','Voz devagar'],[1,'1×','Voz normal'],[1.2,'1,2×','Voz rápida'],[1.5,'1,5×','Voz bem rápida']];
+var PACES=[[2.1,'Lento'],[1.6,'Calmo'],[1.2,'Normal'],[0.9,'Ligeiro']];
+function nearest(list, v){
+  var b=0;
+  for(var j=1;j<list.length;j++){ if(Math.abs(list[j][0]-v)<Math.abs(list[b][0]-v)) b=j; }
+  return list[b][0];
+}
+function vrateSeg(){
+  var on=nearest(VRATES,S.vrate);
+  return '<div class="seg" role="group" aria-label="Velocidade da voz">'+VRATES.map(function(x){
+    return '<button data-vrate="'+x[0]+'" aria-label="'+x[2]+' ('+x[1]+')" aria-pressed="'+(on===x[0])+'">'+x[1]+'</button>';
+  }).join('')+'</div>';
+}
+function paceSeg(){
+  var on=nearest(PACES,S.pace);
+  return '<div class="seg" role="group" aria-label="Ritmo do automático">'+PACES.map(function(x){
+    return '<button data-pace="'+x[0]+'" aria-label="Ritmo '+x[1].toLowerCase()+'" aria-pressed="'+(on===x[0])+'">'+x[1]+'</button>';
+  }).join('')+'</div>';
+}
+/* Marca os presets sem redesenhar a tela (na reza, render() reiniciaria a narração). */
+function syncTune(){
+  var v=nearest(VRATES,S.vrate), pc=nearest(PACES,S.pace);
+  [].forEach.call(app.querySelectorAll('[data-vrate]'), function(b){ b.setAttribute('aria-pressed', String(+b.dataset.vrate===v)); });
+  [].forEach.call(app.querySelectorAll('[data-pace]'), function(b){ b.setAttribute('aria-pressed', String(+b.dataset.pace===pc)); });
+}
 function onColor(hex){ var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return (0.299*r+0.587*g+0.114*b)>150?'#2b2117':'#fff'; }
 function applyTheme(){
   var r=document.documentElement;
@@ -612,6 +653,9 @@ function home(){
     streakHome()+
     '<p class="eyebrow label">Rezar</p>'+modeSeg()+
     chipsBlock+
+    (S.lang==='pt'?'<p class="eyebrow label">Velocidade da voz</p>'+vrateSeg():'')+
+    '<p class="eyebrow label">Ritmo do automático</p>'+paceSeg()+
+    '<p class="note" style="margin:8px 0 0;font-size:.85rem">'+(S.lang==='pt'?'A voz muda a fala da narração (Ouvir). ':'')+'O ritmo muda só a pausa entre as orações.</p>'+
     '<p class="eyebrow label">Tema</p>'+themeSeg()+
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Lembrete diário</p>'+
@@ -630,6 +674,13 @@ function home(){
     '<div class="stack">'+cont+'</div>';
 }
 
+var TUNE=false;
+var IC={
+  play:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>',
+  pause:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>',
+  skip:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3l6 5-6 5zM8.5 3l6 5-6 5z"/></svg>',
+  tune:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h7M16 6h1M3 14h1M10 14h7"/><circle cx="13" cy="6" r="2.2"/><circle cx="7" cy="14" r="2.2"/></svg>'
+};
 function pray(){
   var st=STEPS[S.i], p=PRAYERS[st.k];
   var decDone = typeof st.dec==='number' ? st.dec : (st.phase==='Final'?5:-1);
@@ -668,22 +719,21 @@ function pray(){
     btn = (S.i===STEPS.length-1) ? 'Amém' : 'Próxima oração';
   }
   var nextLabel = st.announce ? 'Pai Nosso rezado' : btn;
+  var pt = (S.lang==='pt');
 
   app.innerHTML =
     '<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><div class="prog" aria-hidden="true">'+seg+'</div><button class="exit" data-act="reset" aria-label="Reiniciar do começo">↺</button></div>'+
     '<div id="rosHolder"></div>'+
-    '<div class="where"><p class="eyebrow">'+where+'</p><div class="ctl">'+
-      ((S.lang==='pt')?'<button class="mini" data-act="say" aria-pressed="'+S.say+'">'+(S.say?'❚❚ Ouvindo':'▶ Ouvir')+'</button>':'')+
-      '<button class="mini" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?'❚❚ Pausar':'▶ Auto')+'</button>'+
-      '<button class="mini" data-act="faster" aria-label="Mais rápido">–</button>'+
-      '<span class="pace" aria-label="Ritmo">'+S.pace.toFixed(1)+'×</span>'+
-      '<button class="mini" data-act="slower" aria-label="Mais devagar">+</button>'+
+    '<div class="where"><p class="eyebrow">'+where+'</p></div>'+
+    '<div class="player">'+
+      (pt?'<button class="pbtn" data-act="say" aria-pressed="'+S.say+'">'+(S.say?IC.pause+'Ouvindo<i class="aprog" id="aprog"></i>':IC.play+'Ouvir')+'</button>':'')+
+      '<button class="pbtn" data-act="auto" aria-pressed="'+S.auto+'">'+(S.auto?IC.pause:IC.skip)+'Auto</button>'+
+      '<button class="pbtn tune" data-act="tune" aria-label="Ajustar velocidades" aria-expanded="'+TUNE+'" aria-controls="tunebox">'+IC.tune+'</button>'+
     '</div>'+
-    '<div class="ctl" style="margin-top:6px"><span class="pace" aria-label="Velocidade da voz" style="opacity:.75">🗣 Voz</span>'+
-      '<button class="mini" data-act="vdown" aria-label="Voz mais devagar">–</button>'+
-      '<span class="pace">'+S.vrate.toFixed(1)+'×</span>'+
-      '<button class="mini" data-act="vup" aria-label="Voz mais rápida">+</button>'+
-    '</div></div>'+
+    '<div class="tunebox" id="tunebox"'+(TUNE?'':' hidden')+'>'+
+      (pt?'<div class="setl"><p class="eyebrow">Velocidade da voz</p><small>fala da narração</small></div>'+vrateSeg():'')+
+      '<div class="setl"><p class="eyebrow">Ritmo do automático</p><small>pausa entre as orações</small></div>'+paceSeg()+
+    '</div>'+
     '<div class="scroll">'+
       head+title+note+pair(p)+
     '</div>'+
@@ -834,7 +884,17 @@ function narrate(text, tok, done){
   one();
 }
 var AUD=null, clipFail={};
-function audioEl(){ if(!AUD){ AUD=new Audio(); AUD.preload='auto'; AUD.setAttribute('playsinline',''); } return AUD; }
+function audioEl(){
+  if(!AUD){
+    AUD=new Audio(); AUD.preload='auto'; AUD.setAttribute('playsinline','');
+    /* progresso real do clipe em reprodução, desenhado dentro do botão "Ouvindo" */
+    AUD.addEventListener('timeupdate', function(){
+      var el=document.getElementById('aprog');
+      if(el && AUD.duration>0) el.style.setProperty('--ap', Math.min(100, AUD.currentTime/AUD.duration*100).toFixed(1)+'%');
+    });
+  }
+  return AUD;
+}
 function clipUrl(id){ return 'audio/'+(S.voice==='m'?'m':'f')+'/'+id+'.mp3'; }
 function stepClips(){
   var st=STEPS[S.i], arr=[];
@@ -928,7 +988,13 @@ function start(){ STEPS=build(S.set); S.i=0; S.c=0; S.started=true; S.view='pray
 
 app.addEventListener('click', function(e){
   var t=e.target.closest('button'); if(!t) return;
-  if(t.dataset.voice){ S.voice=t.dataset.voice; save(); render(); return; }
+  if(t.dataset.vrate||t.dataset.pace){
+    if(t.dataset.vrate){ S.vrate=+t.dataset.vrate; if(AUD){ try{ AUD.playbackRate=S.vrate; }catch(e){} } }
+    else S.pace=+t.dataset.pace;
+    save();
+    if(S.view==='pray') syncTune(); else render();
+    return;
+  }
   if(t.dataset.themeOpt){ S.theme=t.dataset.themeOpt; save(); render(); return; }
   if(t.dataset.lang){ S.lang=t.dataset.lang; save(); render(); return; }
   if(t.dataset.mode){
@@ -948,10 +1014,7 @@ app.addEventListener('click', function(e){
   else if(a==='ics') downloadIcs();
   else if(a==='notif') toggleNotif();
   else if(a==='auto'){ S.auto=!S.auto; render(); }
-  else if(a==='slower'){ S.pace=Math.min(2.5, Math.round((S.pace+0.3)*10)/10); save(); render(); }
-  else if(a==='faster'){ S.pace=Math.max(0.6, Math.round((S.pace-0.3)*10)/10); save(); render(); }
-  else if(a==='vup'){ S.vrate=Math.min(1.6, Math.round((S.vrate+0.1)*10)/10); if(AUD){ try{ AUD.playbackRate=S.vrate; }catch(e){} } save(); render(); }
-  else if(a==='vdown'){ S.vrate=Math.max(0.7, Math.round((S.vrate-0.1)*10)/10); if(AUD){ try{ AUD.playbackRate=S.vrate; }catch(e){} } save(); render(); }
+  else if(a==='tune'){ TUNE=!TUNE; var tb=document.getElementById('tunebox'); if(tb) tb.hidden=!TUNE; t.setAttribute('aria-expanded', String(TUNE)); }
   else if(a==='ros'){ OVERVIEW=!OVERVIEW; ROS.classList.toggle('big',OVERVIEW); wake(); }
   else if(a==='reset'){ S.i=0; S.c=0; STEPS=build(); save(); render(); }
   else if(a==='angelus'){ S.view='angelus'; render(); }
@@ -974,12 +1037,6 @@ document.addEventListener('keydown', function(e){
 });
 
 /* ---------- Áudio (voz do aparelho) ---------- */
-function voiceSeg(){
-  var o=[['f','Feminina'],['m','Masculina']];
-  return '<div class="seg" role="group" aria-label="Voz">'+o.map(function(x){
-    return '<button data-voice="'+x[0]+'" aria-pressed="'+(S.voice===x[0])+'">'+x[1]+'</button>';
-  }).join('')+'</div>';
-}
 /* Latim eclesiástico lido por voz italiana: ae vira e, ti+vogal vira zi (gratia = gratsia). */
 function latinForSpeech(t){
   return t.replace(/æ/g,'e').replace(/Æ/g,'E').replace(/œ/g,'e')
