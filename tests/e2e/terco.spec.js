@@ -9,6 +9,9 @@ const url = 'file://' + path.join(__dirname, '..', '..', 'index.html');
 const stub = () => {
   try { localStorage.clear(); } catch (e) {}
   window.__spoken = [];
+  // Em headless não há áudio real: força o play() a falhar para cair no
+  // fallback de narração (TTS), que é o caminho exercido por este teste.
+  try { window.HTMLMediaElement.prototype.play = function () { return Promise.reject(new DOMException('blocked')); }; } catch (e) {}
   const ss = window.speechSynthesis;
   ss.getVoices = () => [{ name: 'Luca', lang: 'it-IT' }, { name: 'Alice', lang: 'it-IT' }];
   ss.cancel = () => {};
