@@ -129,14 +129,18 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .clklock.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .scard{border:1px solid var(--line);border-radius:14px;padding:12px 6px 10px;text-align:center;background:var(--card)}
-.scard:not(.got){opacity:.62}
-.sthumbwrap{width:60px;height:60px;margin:0 auto 7px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--line)}
-.sthumb{width:42px;height:42px}
-.sthumb .halo{fill:none;stroke:var(--line);stroke-width:2}
-.sthumb .fig{fill:var(--muted)}
-.scard.got .sthumbwrap{background:var(--accent);border-color:var(--accent)}
-.scard.got .sthumb .halo{stroke:#fff;opacity:.9}
-.scard.got .sthumb .fig{fill:#fff}
+.scard:not(.got){opacity:.66}
+.sthumbwrap{--m:var(--accent);width:66px;height:66px;margin:0 auto 7px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);background:var(--bg);border:1.5px dashed var(--line)}
+.sthumbwrap{background:color-mix(in srgb,var(--m) 9%,var(--bg));border-color:color-mix(in srgb,var(--m) 45%,var(--line))}
+.sthumb{width:100%;height:100%;display:block}
+.sthumb .st{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sthumb .fl{fill:currentColor;stroke:none}
+.sthumb .rim{fill:none;stroke:currentColor;stroke-width:.8;opacity:.4}
+.sthumb .sym{opacity:.7}
+.scard.got{border-color:var(--m);border-color:color-mix(in srgb,var(--m) 55%,var(--line))}
+.scard.got .sthumbwrap{color:#fff;background:var(--m);background:radial-gradient(circle at 34% 26%,color-mix(in srgb,var(--m) 78%,#fff),var(--m) 62%);border:2px solid var(--card);box-shadow:0 0 0 2px var(--m),0 3px 8px rgba(0,0,0,.22)}
+.scard.got .sthumb .rim{opacity:.6;stroke-dasharray:1.2 2.4;stroke-width:1.2}
+.scard.got .sthumb .sym{opacity:1}
 .sdate{margin:0;font-family:var(--display);font-size:.7rem;letter-spacing:.05em;color:var(--muted)}
 .scard.got .sdate{color:var(--accent)}
 .snm{margin:3px 0 0;font-size:.72rem;line-height:1.25;color:var(--ink)}
@@ -455,15 +459,74 @@ function santoHome(){
   return '<div class="santo"><p class="eyebrow">Santo do dia</p><p class="sname">'+(nome||'Santos e santas do dia')+'</p>'+
     '<button class="mini" data-act="album" style="margin-top:10px">Álbum de santos · '+got+'/'+total+'</button></div>';
 }
-function saintThumb(){
-  return '<svg viewBox="0 0 48 48" class="sthumb" aria-hidden="true"><circle cx="24" cy="15" r="10.5" class="halo"/><circle cx="24" cy="17" r="6.2" class="fig"/><path d="M11 43c0-8 6-12 13-12s13 4 13 12z" class="fig"/></svg>';
+// Miniaturas do álbum: cada santo ganha um medalhão com símbolo (pela categoria) e cor próprios.
+var SAINT_SYM={
+  maria:'<path class="st" d="M24 9v12M20.5 13h7M17 21h14M15 36V24l9 8 9-8v12"/><circle class="fl" cx="12" cy="17" r="1.3"/><circle class="fl" cx="36" cy="17" r="1.3"/>',
+  cruz:'<path class="st" style="stroke-width:3" d="M24 11v26M16 19.500h16"/><path class="st" d="M12.5 11.500l3 3M35.5 11.500l-3 3M12.5 36.500l3-3M35.5 36.500l-3-3"/>',
+  chaves:'<g><circle class="st" cx="33" cy="14" r="4"/><path class="st" d="M30.3 17L14 36M17.4 32l3.2 2.700M14.3 35.600l3.2 2.7"/></g><g transform="matrix(-1 0 0 1 48 0)"><circle class="st" cx="33" cy="14" r="4"/><path class="st" d="M30.3 17L14 36M17.4 32l3.2 2.700M14.3 35.600l3.2 2.7"/></g>',
+  livro:'<path class="st" d="M24 16c-3-2.5-7-3-11-2.500v19c4-.5 8 0 11 2.5 3-2.5 7-3 11-2.500v-19c-4-.5-8 0-11 2.500zM24 16v19"/><path class="st" style="stroke-width:1.3" d="M16.5 19c2 0 3.5.3 5 1M16.5 23.500c2 0 3.5.3 5 1M31.5 19c-2 0-3.5.3-5 1M31.5 23.500c-2 0-3.5.3-5 1"/>',
+  asas:'<ellipse class="st" style="stroke-width:1.6" cx="24" cy="12.5" rx="5" ry="1.9"/><path class="fl" d="M22.5 34c-8 1-13.5-5-14.5-16 3 3 6 4.5 9 4.5-.8 2 .2 3.5 1.5 4.5 1.8-.8 3 .5 4 2.500z"/><path class="fl" d="M25.5 34c8 1 13.5-5 14.5-16-3 3-6 4.5-9 4.5.8 2-.2 3.5-1.5 4.5-1.8-.8-3 .5-4 2.500z"/><circle class="fl" cx="24" cy="20.5" r="3"/>',
+  palma:'<path class="st" d="M15 38c4-8 10-18 18-27"/><path class="st" d="M18.5 32l-6.5-2.500M22 26l-7-3.500M25.5 20.500l-6.5-4M29.5 15.500l-5-4.500M18.5 32l7 1M22 26l7.5.5M25.5 20.500l7.5-.5"/>',
+  papal:'<path class="st" style="stroke-width:2.6" d="M24 9v30"/><path class="st" d="M20 15h8M17 21h14M14 27h20"/>',
+  mitra:'<path class="st" d="M15 37V24c0-5 5-9 9-14 4 5 9 9 9 14v13z"/><path class="st" style="stroke-width:1.5" d="M24 18v19M15 31h18"/>',
+  pena:'<path class="fl" d="M35 10c-10.5 1-17.5 8-19.5 19.500l3 1.500C28 27.5 34 20.5 35 10z"/><path class="st" d="M16.5 30l-4 8.5"/><path class="st" style="stroke-width:1.4" d="M22 38.500h13"/>',
+  lirio:'<path class="fl" d="M24 9c3.5 5.5 3.5 12.5 0 18-3.5-5.5-3.5-12.5 0-18z"/><path class="fl" d="M21.5 28.500c-6.5 0-10.5-4-11.5-10.5 5.5 0 9.5 3.5 11.5 10.500z"/><path class="fl" d="M26.5 28.500c6.5 0 10.5-4 11.5-10.5-5.5 0-9.5 3.5-11.5 10.500z"/><path class="st" d="M19.5 31h9M24 31v8"/>',
+  coracao:'<path class="fl" d="M24 39c-8-6-12-10-12-15a6 6 0 0 1 12-3 6 6 0 0 1 12 3c0 5-4 9-12 15z"/><path class="fl" d="M24 7c2 3 3 4.2 3 6a3 3 0 0 1-6 0c0-1.8 1-3 3-6z"/>',
+  igreja:'<path class="st" d="M14 38V25l10-8 10 8v13zM21 38v-6a3 3 0 0 1 6 0v6M24 17V8M21 11h6"/>',
+  coroa:'<path class="st" d="M13.5 32l-2.5-15 7.5 6L24 13l5.5 10 7.5-6-2.5 15z"/><path class="st" d="M13.5 36.500h21"/><circle class="fl" cx="24" cy="27" r="1.6"/>',
+  concha:'<path class="st" d="M24 37L11.5 24a12.5 12.5 0 1 1 25 0z"/><path class="st" style="stroke-width:1.4" d="M24 37V10M24 37l-6.5-25M24 37l6.5-25"/>',
+  vela:'<path class="fl" d="M24 9c2.5 3.5 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1-3.5 3.5-7z"/><path class="st" d="M20 23h8v15h-8zM15.5 38h17"/>',
+  estrela:'<path class="fl" d="M24 11l3.5 8.2 8.9.8-6.7 5.9 2 8.700L24 30l-7.7 4.6 2-8.7-6.7-5.9 8.9-.8z"/>'
+};
+// Categorias que o nome sozinho não revela (mártires, papas, bispos, doutores...).
+var SAINT_KIND={
+  palma:'01-20 01-21 02-03 02-05 02-23 03-07 04-11 04-23 04-24 06-01 06-02 06-05 06-22 06-28 07-06 07-20 08-10 08-13 08-14 09-16 09-19 09-26 10-17 11-12 11-22 11-25 12-13 12-26 12-29',
+  papal:'04-30 08-21 09-03 10-11 10-14 10-22 11-10 11-23 12-11 12-31',
+  mitra:'01-02 01-13 01-24 01-26 02-14 02-21 03-17 03-18 03-23 04-04 04-21 05-02 06-06 06-27 07-15 08-01 08-28 09-13 09-17 10-24 11-04 11-11 12-06 12-07',
+  pena:'01-28 04-29 05-10 05-25 06-09 07-21 09-30 10-15 11-15 12-04 12-14 12-21 12-23',
+  coroa:'03-04 07-04 07-13 08-16 09-28 10-16 11-17',
+  concha:'06-24 09-09 12-03',
+  vela:'11-02',
+  chaves:'01-25 02-22 05-03 06-29 08-24 10-28',
+  coracao:'01-17 01-27 01-31 02-10 02-17 03-08 04-02 04-07 05-26 06-19 07-05 07-11 07-14 07-31 08-07 08-08 08-11 08-19 08-20 08-25 09-05 09-27 10-04 10-06 10-09 10-19 11-03',
+  lirio:'03-19 05-01 06-13 06-21 07-26'
+};
+var SAINT_BY_KEY=(function(){ var m={}; Object.keys(SAINT_KIND).forEach(function(c){ SAINT_KIND[c].split(' ').forEach(function(k){ m[k]=c; }); }); return m; })();
+function saintKind(k,nome){
+  nome=nome||SANTOS[k]||'';
+  if(SAINT_BY_KEY[k]) return SAINT_BY_KEY[k];
+  if(/Dedicação/.test(nome)) return 'igreja';
+  if(/Nossa Senhora|Maria, Mãe|Imaculada|Nome de Maria/.test(nome)) return 'maria';
+  if(/Senhor|Nome de Jesus|Santa Cruz/.test(nome)) return 'cruz';
+  if(/Anjo/i.test(nome)) return 'asas';
+  if(/evangelista/.test(nome)) return 'livro';
+  if(/apóstolo/.test(nome)) return 'chaves';
+  if(/companheiros|Martírio|Inocentes/.test(nome)) return 'palma';
+  if(/abade/.test(nome)) return 'coracao';
+  if(/^Santas? /.test(nome)) return 'lirio';
+  return 'estrela';
+}
+// Tons que seguram símbolo branco e funcionam nos temas claro e escuro.
+// Azul fica só para Nossa Senhora e vinho só para os mártires; os demais sorteiam pelo nome/data.
+var SAINT_COLORS=['#8c2a3a','#2f5d8c','#a8741a','#4f7a3a','#6b4a8c','#23787a','#b5552f','#3f4f8f'];
+function saintColor(k,kind){
+  if(kind==='maria') return SAINT_COLORS[1];
+  if(kind==='cruz') return SAINT_COLORS[2];
+  if(kind==='palma') return SAINT_COLORS[0];
+  var s=String(k)+(SANTOS[k]||''), h=0;
+  for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  return SAINT_COLORS[2+h%(SAINT_COLORS.length-2)];
+}
+function saintThumb(k){
+  var kind=saintKind(k,SANTOS[k]);
+  return '<div class="sthumbwrap" data-kind="'+kind+'" style="--m:'+saintColor(k,kind)+'"><svg viewBox="0 0 48 48" class="sthumb" aria-hidden="true"><circle cx="24" cy="24" r="21.5" class="rim"/><g class="sym">'+SAINT_SYM[kind]+'</g></svg></div>';
 }
 function albumView(){
   var got=S.santos||{}, keys=Object.keys(SANTOS), n=Object.keys(got).length;
   keys.sort(function(a,b){ var ua=got[a]?0:1, ub=got[b]?0:1; return ua!==ub ? ua-ub : (a<b?-1:1); });
   var cards=keys.map(function(k){
     var un=!!got[k];
-    return '<div class="scard'+(un?' got':'')+'"><div class="sthumbwrap">'+saintThumb()+'</div>'+
+    return '<div class="scard'+(un?' got':'')+'"'+(un?' style="--m:'+saintColor(k,saintKind(k))+'"':'')+'>'+saintThumb(k)+
       '<p class="sdate">'+k.slice(3,5)+'/'+k.slice(0,2)+'</p><p class="snm">'+SANTOS[k]+'</p></div>';
   }).join('');
   app.innerHTML='<div class="top"><button class="exit" data-act="home" aria-label="Voltar ao início">✕</button><p class="eyebrow" style="flex:1;align-self:center">Álbum de santos · '+n+'/'+keys.length+'</p></div>'+
