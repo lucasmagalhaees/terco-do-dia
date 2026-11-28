@@ -1,5 +1,5 @@
 /* Cache simples para abrir offline e foco ao tocar na notificação. */
-var CACHE = 'terco-v1';
+var CACHE = 'terco-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
