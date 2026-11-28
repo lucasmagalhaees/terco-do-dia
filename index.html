@@ -114,7 +114,9 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .fruit{margin:0 0 6px;font-size:.82rem;color:var(--muted)}
 .timerow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;margin:0 0 10px}
 .timerow span{font-size:.92rem;color:var(--muted)}
-.timerow input[type=time]{font:inherit;font-size:1.1rem;color:var(--ink);background:none;border:0;color-scheme:light dark}
+.timesel{display:flex;align-items:center;gap:4px}
+.timesel select{font:inherit;font-size:1.1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color-scheme:light dark}
+.timesel b{color:var(--muted)}
 .streak{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:14px;margin:18px 0 4px}
 .sline{display:flex;align-items:center;gap:14px}
 .snum{font-family:var(--display);font-weight:600;font-size:2.3rem;line-height:1;color:var(--accent);min-width:1.5em;text-align:center;font-variant-numeric:tabular-nums}
@@ -525,7 +527,7 @@ function home(){
     '<p class="eyebrow label">Idioma</p>'+langSeg()+
     '<p class="eyebrow label">Voz para ouvir</p>'+voiceSeg()+
     '<p class="eyebrow label">Lembrete diário</p>'+
-    '<div class="timerow"><span>Horário do lembrete</span><input type="time" id="remTime" value="'+S.remTime+'"></div>'+
+    '<div class="timerow"><span>Horário do lembrete</span>'+timeSelect()+'</div>'+
     '<div class="stack"><button class="btn ghost" data-act="ics">Adicionar ao calendário</button>'+
     '<button class="btn ghost" data-act="notif">'+notifLabel()+'</button></div>'+
     '<p class="note" style="margin-top:10px">O calendário avisa todo dia, mesmo com o app fechado. O aviso do app só toca com ele aberto.</p>'+
@@ -820,7 +822,7 @@ app.addEventListener('click', function(e){
 });
 app.addEventListener('change', function(e){
   var t=e.target;
-  if(t && t.id==='remTime' && t.value){ S.remTime=t.value; save(); render(); }
+  if(t && (t.id==='remH' || t.id==='remM')){ var H=document.getElementById('remH'), M=document.getElementById('remM'); if(H&&M){ S.remTime=pad2(+H.value)+':'+pad2(+M.value); save(); } return; }
   if(t && t.id==='impFile' && t.files && t.files[0]){ importData(t.files[0]); }
 });
 document.addEventListener('keydown', function(e){
@@ -870,6 +872,12 @@ function downloadIcs(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); },4000);
   }catch(e){}
+}
+function timeSelect(){
+  var hm=(S.remTime||'20:10').split(':'), H=+hm[0]||0, M=+hm[1]||0, h='', m='', i;
+  for(i=0;i<24;i++){ h+='<option value="'+i+'"'+(i===H?' selected':'')+'>'+pad2(i)+'</option>'; }
+  for(i=0;i<60;i++){ m+='<option value="'+i+'"'+(i===M?' selected':'')+'>'+pad2(i)+'</option>'; }
+  return '<span class="timesel"><select id="remH" aria-label="Hora">'+h+'</select><b>:</b><select id="remM" aria-label="Minuto">'+m+'</select></span>';
 }
 function notifLabel(){
   if(!('Notification' in window)) return 'Aviso indisponível neste navegador';
