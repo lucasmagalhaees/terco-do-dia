@@ -106,7 +106,7 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .mini{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:.8rem;min-height:36px;white-space:nowrap}
 .mini[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .pace{align-self:center;font-size:.8rem;color:var(--muted);min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
-.med{margin:2px 0 6px;font-style:italic;color:var(--ink);font-size:.98rem;line-height:1.45}
+.med{margin:4px 0 8px;font-style:italic;color:var(--ink);font-size:1.18rem;line-height:1.55}
 .med .ref{font-style:normal;font-family:var(--display);font-size:.72rem;letter-spacing:.06em;color:var(--accent);margin-right:6px}
 .fruit{margin:0 0 6px;font-size:.82rem;color:var(--muted)}
 .timerow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;margin:0 0 10px}
@@ -147,6 +147,9 @@ var PRAYERS = {
   sinal:{ name:{pt:'Sinal da Cruz',la:'Signum Crucis'},
     pt:'Em nome do Pai, e do Filho, e do Espírito Santo. Amém.',
     la:'In nómine Patris, et Fílii, et Spíritus Sancti. Amen.' },
+  pelosinal:{ name:{pt:'Pelo sinal da Santa Cruz',la:'Per signum Crucis'},
+    pt:'Pelo sinal da Santa Cruz, livrai-nos, Deus, Nosso Senhor, dos nossos inimigos. Em nome do Pai, e do Filho, e do Espírito Santo. Amém.',
+    la:'Per signum Crucis de inimícis nostris líbera nos, Deus noster. In nómine Patris, et Fílii, et Spíritus Sancti. Amen.' },
   credo:{ name:{pt:'Creio em Deus Pai',la:'Credo'},
     pt:'Creio em Deus Pai todo-poderoso, criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor, que foi concebido pelo poder do Espírito Santo, nasceu da Virgem Maria, padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus, está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo, na santa Igreja Católica, na comunhão dos santos, na remissão dos pecados, na ressurreição da carne, na vida eterna. Amém.',
     la:'Credo in Deum Patrem omnipoténtem, Creatórem cæli et terræ. Et in Iesum Christum, Fílium eius unicum, Dóminum nostrum, qui conceptus est de Spíritu Sancto, natus ex María Vírgine, passus sub Póntio Piláto, crucifíxus, mórtuus, et sepúltus, descéndit ad ínferos; tértia die resurréxit a mórtuis; ascéndit ad cælos, sedet ad déxteram Dei Patris omnipoténtis; inde ventúrus est iudicáre vivos et mórtuos. Credo in Spíritum Sanctum, sanctam Ecclésiam cathólicam, sanctórum communiónem, remissiónem peccatórum, carnis resurrectiónem, vitam ætérnam. Amen.' },
@@ -219,7 +222,7 @@ var MOTIFS={
 var MOTIF_MAP={ gozosos:['lily','dove','star','flame','sun'], luminosos:['water','chalice','sun','flame','chalice'], dolorosos:['chalice','cross','crown','cross','cross'], gloriosos:['sun','sun','flame','crown','crown'] };
 var COLOR_MAP={ gozosos:['#b8863a','#5a8a6e','#c6922b','#a8742f','#c79a3a'], luminosos:['#3f73b0','#5a6fb0','#3f8fb0','#6a74c0','#3f73b0'], dolorosos:['#7a2f3f','#8c2a3a','#9a3b4a','#7d3b2f','#8c2a3a'], gloriosos:['#c79a3a','#b08a3a','#c18a3f','#b57fa0','#c7b06a'] };
 Object.keys(SETS).forEach(function(sk){ SETS[sk].items.forEach(function(m,d){ m.motif=MOTIF_MAP[sk][d]; m.color=COLOR_MAP[sk][d]; }); });
-var VINT=['Aumentai em nós a fé','Aumentai em nós a esperança','Aumentai em nós a caridade'];
+var VINT=['Pela virtude da fé','Pela virtude da esperança','Pela virtude da caridade'];
 var ANGELUS={
   pt:[['O Anjo do Senhor anunciou a Maria,','E ela concebeu do Espírito Santo.',true],
       ['Eis aqui a serva do Senhor,','Faça-se em mim segundo a vossa palavra.',true],
@@ -270,8 +273,7 @@ var ROSARIO=['gozosos','luminosos','dolorosos','gloriosos'];
 function setsForRun(){ return S.mode==='rosario' ? ROSARIO : [S.set]; }
 function build(){
   var sets=setsForRun(), st=[];
-  st.push({k:'sinal',phase:'Início'});
-  st.push({k:'veni',phase:'Início'});
+  st.push({k:'pelosinal',phase:'Início'});
   st.push({k:'credo',phase:'Início'});
   st.push({k:'pai',phase:'Início'});
   st.push({k:'ave',count:3,phase:'Início',note:{pt:'Três Ave-Marias: pela fé, pela esperança e pela caridade.',la:'Tres Ave Maria: pro fide, spe et caritate.'}});
@@ -515,7 +517,7 @@ function pray(){
   }
   var title = '<p class="eyebrow" style="margin-bottom:8px">'+(S.lang==='pt'?p.name.pt:(S.lang==='la'?p.name.la:p.name.la+' · '+p.name.pt))+'</p>';
   var note = st.note ? '<p class="note">'+(S.lang==='la'?st.note.la:(S.lang==='both'?st.note.pt:st.note.pt))+'</p>' : '';
-  if(st.phase==='Início' && st.k==='ave' && st.count===3){ var av=(S.lang==='la'?ANGELUS.la:ANGELUS.pt)[S.c]; note='<p class="vr"><b>℣</b> '+av[0]+'<br><b>℟</b> '+av[1]+'</p>'; }
+  if(st.phase==='Início' && st.k==='ave' && st.count===3){ note='<p class="note">'+(S.c+1)+'ª Ave-Maria · '+VINT[S.c]+'</p>'; }
   var count='', btn;
   if(st.count){
     count='<div class="count">'+S.c+' / '+st.count+'</div>';
@@ -580,7 +582,7 @@ function buildRosary(){
 }
 function curBead(){
   var st=STEPS[S.i], k=st.k, d=st.dec, has=(typeof d==='number');
-  if(k==='credo'||k==='veni'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
+  if(k==='credo'||k==='pelosinal'||k==='veni'||(k==='sinal'&&!st.end)) return {id:'cross',p:0};
   if(k==='pai'&&!has) return {id:'A1',p:1};
   if(k==='ave'&&!has) return {id:'t'+S.c,p:2+S.c};
   if(k==='gloria'&&!has) return {id:'B',p:5};
