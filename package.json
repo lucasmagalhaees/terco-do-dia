@@ -4,7 +4,8 @@
   "scripts": {
     "test:unit": "node --test --test-force-exit tests/unit/app.test.js",
     "test:e2e": "playwright test",
-    "test": "npm run test:unit && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e",
+    "gen:audio": "node scripts/gen-audio.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.49.1",

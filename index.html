@@ -828,13 +828,51 @@ function narrate(text, tok, done){
   }
   one();
 }
+var AUD=null, clipFail={};
+function audioEl(){ if(!AUD){ AUD=new Audio(); AUD.preload='auto'; AUD.setAttribute('playsinline',''); } return AUD; }
+function clipUrl(id){ return 'audio/'+(S.voice==='m'?'m':'f')+'/'+id+'.mp3'; }
+function stepClips(){
+  var st=STEPS[S.i], arr=[];
+  if(st.announce && st.setKey) arr.push('myst-'+st.setKey+'-'+st.dec);
+  if(st.k) arr.push(st.k);
+  return arr;
+}
+function setMedia(){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    var st=STEPS[S.i], p=PRAYERS[st.k];
+    if(window.MediaMetadata) navigator.mediaSession.metadata=new MediaMetadata({title:(p?p.name.pt:'Terço'), artist:'Terço do Dia'});
+    navigator.mediaSession.setActionHandler('play', function(){ if(!S.say){ S.say=true; save(); render(); } });
+    navigator.mediaSession.setActionHandler('pause', function(){ if(S.say){ S.say=false; save(); render(); } });
+    navigator.mediaSession.setActionHandler('nexttrack', function(){ next(); });
+    navigator.mediaSession.setActionHandler('previoustrack', function(){ back(); });
+  }catch(e){}
+}
+function playClips(ids, tok, done){
+  if(!ids.length){ done(true); return; }
+  for(var j=0;j<ids.length;j++){ if(clipFail[ids[j]]){ narrate(stepSpeech(), tok, done); return; } }
+  var a=audioEl(), i=0, fell=false;
+  function fail(){ if(fell||tok!==speakTok) return; fell=true; narrate(stepSpeech(), tok, done); }
+  function one(){
+    if(tok!==speakTok) return;
+    if(i>=ids.length){ done(true); return; }
+    var id=ids[i++];
+    a.onended=function(){ one(); };
+    a.onerror=function(){ clipFail[id]=true; fail(); };
+    a.src=clipUrl(id); setMedia();
+    var pr=a.play();
+    if(pr&&pr.catch) pr.catch(function(){ clipFail[id]=true; fail(); });
+  }
+  one();
+}
+function speakStep(tok, done){ playClips(stepClips(), tok, done); }
 function schedule(){
   clearTimeout(autoTimer);
   if(S.view!=='pray') return;
   var tok=speakTok, gap=Math.round(350*S.pace);
-  if(S.say && S.lang==='pt' && window.speechSynthesis){
+  if(S.say && S.lang==='pt'){
     autoTimer=setTimeout(function(){
-      narrate(stepSpeech(), tok, function(ok){
+      speakStep(tok, function(ok){
         if(tok!==speakTok||!(S.auto||S.say)) return;
         autoTimer=setTimeout(next, ok?gap:delayFor());
       });
@@ -855,6 +893,7 @@ function render(){
   clearTimeout(autoTimer);
   speakTok++;
   if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(AUD){ try{ AUD.pause(); }catch(e){} }
   applyTheme();
   applyAccent();
   if(S.view==='home') home(); else if(S.view==='pray'){ pray(); schedule(); } else if(S.view==='angelus') angelusView(); else if(S.view==='album') albumView(); else done();
