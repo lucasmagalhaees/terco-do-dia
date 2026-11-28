@@ -31,7 +31,7 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:20px;line-height:1.5;-webkit-text-size-adjust:100%}
-button{font:inherit;color:inherit;cursor:pointer}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 #app{height:100%;display:flex;flex-direction:column;max-width:640px;margin:0 auto;
   padding:max(env(safe-area-inset-top),14px) max(env(safe-area-inset-right),18px) max(env(safe-area-inset-bottom),14px) max(env(safe-area-inset-left),18px)}
@@ -117,6 +117,12 @@ h2{font-size:clamp(1.35rem,5.5vw,1.7rem);line-height:1.2}
 .snum{font-family:var(--display);font-weight:600;font-size:2.3rem;line-height:1;color:var(--accent);min-width:1.5em;text-align:center;font-variant-numeric:tabular-nums}
 .sbig{margin:0;font-weight:600}
 .ssub{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
+.sicon{font-size:2.1rem;line-height:1;align-self:center}
+.tiers{display:flex;gap:8px;margin:12px 0 2px}
+.tier{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid var(--line);border-radius:10px;opacity:.4}
+.tier.got{opacity:1;border-color:var(--accent)}
+.tier .ti{font-size:1.4rem;line-height:1}
+.tier .tn{font-size:.7rem;color:var(--muted)}
 .dots{display:flex;gap:6px;margin:12px 0 2px}
 .dots i{flex:1;height:8px;border-radius:4px;background:var(--line)}
 .dots i.on{background:var(--accent)}
@@ -354,6 +360,8 @@ function achievements(){
     { nome:'Rosário completo', desc:'Rezou o rosário inteiro', on: !!S.rosDone }
   ];
 }
+var TIERS=[{n:1,ic:'🔥'},{n:7,ic:'🚀'},{n:30,ic:'🏆'},{n:100,ic:'👑'}];
+function tierIcon(d){ var ic='🔥'; TIERS.forEach(function(t){ if(d>=t.n) ic=t.ic; }); return ic; }
 function streakHome(){
   var st=streakInfo(), ach=achievements(), got=ach.filter(function(a){ return a.on; }).length;
   var set={}; (S.log||[]).forEach(function(x){ set[x]=true; });
@@ -363,8 +371,9 @@ function streakHome(){
   var sub = st.total ? ('Recorde: '+st.best+' · Total: '+st.total) : 'Comece hoje a sua sequência';
   var badges = ach.map(function(a){ return '<div class="badge'+(a.on?' got':'')+'">'+a.nome+'</div>'; }).join('');
   return '<div class="streak">'+
-    '<div class="sline"><div class="snum">'+st.cur+'</div><div class="smeta"><p class="sbig">'+big+'</p><p class="ssub">'+sub+'</p></div></div>'+
+    '<div class="sline"><div class="sicon">'+tierIcon(st.cur)+'</div><div class="snum">'+st.cur+'</div><div class="smeta"><p class="sbig">'+big+'</p><p class="ssub">'+sub+'</p></div></div>'+
     '<div class="dots" aria-hidden="true">'+dots+'</div>'+
+    '<div class="tiers">'+TIERS.map(function(t){ return '<div class="tier'+(st.best>=t.n?' got':'')+'"><span class="ti">'+t.ic+'</span><span class="tn">'+t.n+'d</span></div>'; }).join('')+'</div>'+
     '<p class="eyebrow label" style="margin-top:12px">Conquistas ('+got+'/'+ach.length+')</p>'+
     '<div class="badges">'+badges+'</div>'+
   '</div>';
@@ -457,7 +466,7 @@ function pray(){
   }
   var title = '<p class="eyebrow" style="margin-bottom:8px">'+(S.lang==='pt'?p.name.pt:(S.lang==='la'?p.name.la:p.name.la+' · '+p.name.pt))+'</p>';
   var note = st.note ? '<p class="note">'+(S.lang==='la'?st.note.la:(S.lang==='both'?st.note.pt:st.note.pt))+'</p>' : '';
-  if(st.phase==='Início' && st.k==='ave' && st.count===3){ note='<p class="note">'+(S.c+1)+'ª Ave-Maria · '+VINT[S.c]+'</p>'; }
+  if(st.phase==='Início' && st.k==='ave' && st.count===3){ var av=(S.lang==='la'?ANGELUS.la:ANGELUS.pt)[S.c]; note='<p class="vr"><b>℣</b> '+av[0]+'<br><b>℟</b> '+av[1]+'</p>'; }
   var count='', btn;
   if(st.count){
     count='<div class="count">'+S.c+' / '+st.count+'</div>';
